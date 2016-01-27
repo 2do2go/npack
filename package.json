@@ -11,6 +11,7 @@
     "manager",
     "npm"
   ],
+  "main": "./lib/npack.js",
   "bin": {
     "npack": "./bin/npack"
   },
@@ -30,5 +31,14 @@
   "devDependencies": {
     "expect.js": "0.3.1",
     "mocha": "2.4.2"
+  },
+  "dependencies": {
+    "commander": "2.9.0",
+    "fs-extra": "0.26.4",
+    "moment": "2.11.1",
+    "multipipe": "0.3.0",
+    "tar": "2.2.1",
+    "twostep": "0.4.1",
+    "underscore": "1.8.3"
   }
 }

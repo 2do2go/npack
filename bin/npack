@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var program = require('commander'),
+	npack = require('../lib/npack'),
+	packageJson = require('../package.json');
+
+var complete = function(err) {
+	if (err) {
+		console.error('Error:', err.stack);
+	} else {
+		console.log('Done');
+	}
+};
+
+program.version(packageJson.version);
+
+program.command('install <source>')
+	.alias('i')
+	.action(function(src) {
+		npack.install(src, complete);
+	});
+
+program.command('list')
+	.alias('ls')
+	.action(function() {
+		npack.list(complete);
+	});
+
+program.command('current')
+	.action(function() {
+
+	});
+
+program.command('use <package>')
+	.action(function(pkg) {
+		npack.use(pkg, complete);
+	});
+
+program.command('uninstall <package>')
+	.alias('remove')
+	.alias('rm')
+	.action(function(pkg) {
+		npack.uninstall(pkg, complete);
+	});
+
+program.command('clean')
+	.action(function() {
+		npack.clean(complete);
+	});
+
+program.parse(process.argv);
