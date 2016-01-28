@@ -110,6 +110,7 @@ program.command('install <source>')
 		'-f, --force',
 		'Install package even if such version is already installed'
 	)
+	.option('-l, --log', 'Show detailed log of installation')
 	.action(function(src, options) {
 		Steppy(
 			function() {
@@ -123,8 +124,11 @@ program.command('install <source>')
 				}
 			},
 			function(err, password) {
-				var installOptions = _(options).pick('force');
-				installOptions.root = process.cwd();
+				var installOptions = _(options)
+					.chain()
+					.pick('force', 'log')
+					.extend({root: process.cwd()})
+					.value();
 
 				if (options.user) {
 					var auth = options.user + (password !== null ? (':' + password) : '');
@@ -199,12 +203,19 @@ program.command('info <package>')
 
 program.command('use <package>')
 	.description('Set package as current')
+	.option('-l, --log', 'Show detailed log of installation')
 	.action(function(pkg, options) {
 		Steppy(
 			function() {
 				console.log('Set "%s" as current package', pkg);
 
-				npack.use(pkg, {root: process.cwd()}, this.slot());
+				var useOptions = _(options)
+					.chain()
+					.pick('log')
+					.extend({root: process.cwd()})
+					.value();
+
+				npack.use(pkg, useOptions, this.slot());
 			},
 			function() {
 				console.log(colors.green('Done'));
@@ -219,12 +230,19 @@ program.command('uninstall <package>')
 	.alias('remove')
 	.alias('rm')
 	.description('Uninstall package')
+	.option('-l, --log', 'Show detailed log of installation')
 	.action(function(pkg, options) {
 		Steppy(
 			function() {
 				console.log('Uninstall package "%s"', pkg);
 
-				npack.uninstall(pkg, {root: process.cwd()}, this.slot());
+				var uninstallOptions = _(options)
+					.chain()
+					.pick('log')
+					.extend({root: process.cwd()})
+					.value();
+
+				npack.uninstall(pkg, uninstallOptions, this.slot());
 			},
 			function() {
 				console.log(colors.green('Done'));
