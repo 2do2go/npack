@@ -4,50 +4,219 @@
 
 var program = require('commander'),
 	npack = require('../lib/npack'),
-	packageJson = require('../package.json');
+	packageJson = require('../package.json'),
+	_ = require('underscore'),
+	Steppy = require('twostep').Steppy,
+	colors = require('colors/safe'),
+	read = require('read');
 
 var complete = function(err) {
 	if (err) {
-		console.error('Error:', err.stack);
+		console.error(colors.red(err.stack));
 	} else {
-		console.log('Done');
+		console.log(colors.green('Done'));
 	}
+};
+
+var printPkgInfo = function(pkgInfo, options) {
+	options = _({}).defaults(options, {
+		markCurrent: false,
+		spaces: 2
+	});
+
+	var spacesStr = (new Array(options.spaces + 1)).join(' ');
+
+	if (options.markCurrent && pkgInfo.current) {
+		console.log(
+			colors.green(spacesStr + 'name:        %s [*current]'),
+			pkgInfo.name
+		);
+	} else {
+		console.log(spacesStr + 'name:        %s', pkgInfo.name);
+	}
+
+	console.log(spacesStr + 'path:        %s', pkgInfo.path);
+
+	if (pkgInfo.npm) {
+		console.log(spacesStr + 'npm name:    %s', pkgInfo.npm.name);
+		console.log(spacesStr + 'npm version: %s', pkgInfo.npm.version);
+	}
+
+	if (!_(pkgInfo.hooks).isEmpty()) {
+		console.log(spacesStr + 'hooks:');
+
+		_(pkgInfo.hooks).each(function(action, hook) {
+			console.log(spacesStr + '  %s: %s', hook, action);
+		});
+	}
+};
+
+var printPkgsList = function(options) {
+	Steppy(
+		function() {
+			npack.getList({root: process.cwd()}, this.slot());
+		},
+		function(err, pkgInfos) {
+			if (pkgInfos.length) {
+				console.log('Installed packages:');
+
+				_(pkgInfos).each(function(pkgInfo, index) {
+					if (options.info && index ) console.log('');
+
+					var str = '  ' + pkgInfo.name;
+
+					if (pkgInfo.npm) {
+						str += ' (' + pkgInfo.npm.name + ' ' + pkgInfo.npm.version + ')';
+					}
+
+					if (pkgInfo.current) {
+						str += ' [*current]';
+
+						str = colors.green(str);
+					}
+
+					console.log(str);
+
+					if (options.info) {
+						printPkgInfo(pkgInfo, {spaces: 4});
+					}
+				});
+			} else {
+				console.log('Installed packages are not found');
+			}
+		},
+		complete
+	);
 };
 
 program.version(packageJson.version);
 
 program.command('install <source>')
 	.alias('i')
-	.action(function(src) {
-		npack.install(src, complete);
+	.description('Install new package')
+	.option(
+		'-u, --user <USER[:PASSWORD]>',
+		'User for basic authentication, PASSWORD will be promted if omitted'
+	)
+	.option(
+		'-f, --force',
+		'Install package even if such version is already installed'
+	)
+	.action(function(src, options) {
+		Steppy(
+			function() {
+				if (options.user && options.user.indexOf(':') === -1) {
+					read({
+						prompt: 'Enter password for user "' + options.user + '":',
+						silent: true
+					}, this.slot());
+				} else {
+					this.pass(null);
+				}
+			},
+			function(err, password) {
+				var installOptions = _(options).pick('force');
+				installOptions.root = process.cwd();
+
+				if (options.user) {
+					var auth = options.user + (password !== null ? (':' + password) : '');
+					installOptions.auth = auth;
+				}
+
+				npack.install(src, installOptions, this.slot());
+			},
+			complete
+		);
 	});
 
 program.command('list')
 	.alias('ls')
+	.description('Print list of installed packages')
+	.option('-i, --info', 'Show extended info about each package')
+	.action(printPkgsList);
+
+program.command('ll')
+	.description('Print list with extended info, alias for "ls -i"')
 	.action(function() {
-		npack.list(complete);
+		printPkgsList({info: true});
 	});
 
 program.command('current')
+	.alias('cur')
+	.description('Print info about current package')
 	.action(function() {
+		Steppy(
+			function() {
+				npack.getCurrentInfo({root: process.cwd()}, this.slot());
+			},
+			function(err, pkgInfo) {
+				if (pkgInfo) {
+					console.log('Current package info:');
 
+					printPkgInfo(pkgInfo);
+				} else {
+					console.log('Current package is not set');
+				}
+			},
+			complete
+		);
+	});
+
+program.command('info <package>')
+	.description('Print info about intalled package')
+	.action(function(pkg) {
+		Steppy(
+			function() {
+				npack.getInfo(pkg, {root: process.cwd()}, this.slot());
+			},
+			function(err, pkgInfo) {
+				console.log('Package "%s" info:', pkg);
+
+				printPkgInfo(pkgInfo, {markCurrent: true});
+			},
+			complete
+		);
 	});
 
 program.command('use <package>')
+	.description('Set package as current')
 	.action(function(pkg) {
-		npack.use(pkg, complete);
+		Steppy(
+			function() {
+				console.log('Set "%s" as current package', pkg);
+
+				npack.use(pkg, {root: process.cwd()}, this.slot());
+			},
+			complete
+		);
 	});
 
 program.command('uninstall <package>')
 	.alias('remove')
 	.alias('rm')
+	.description('Uninstall package')
 	.action(function(pkg) {
-		npack.uninstall(pkg, complete);
+		Steppy(
+			function() {
+				console.log('Uninstall package "%s"', pkg);
+
+				npack.uninstall(pkg, {root: process.cwd()}, this.slot());
+			},
+			complete
+		);
 	});
 
 program.command('clean')
+	.description('Uninstall all packages except current')
 	.action(function() {
-		npack.clean(complete);
+		Steppy(
+			function() {
+				console.log('Clean inactive packages');
+
+				npack.clean({root: process.cwd()}, this.slot());
+			},
+			complete
+		);
 	});
 
 program.parse(process.argv);

@@ -33,10 +33,12 @@
     "mocha": "2.4.2"
   },
   "dependencies": {
+    "colors": "1.1.2",
     "commander": "2.9.0",
     "fs-extra": "0.26.4",
     "moment": "2.11.1",
     "multipipe": "0.3.0",
+    "read": "1.0.7",
     "tar": "2.2.1",
     "twostep": "0.4.1",
     "underscore": "1.8.3"
