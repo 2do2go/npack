@@ -10,12 +10,16 @@ var program = require('commander'),
 	colors = require('colors/safe'),
 	read = require('read');
 
-var complete = function(err) {
-	if (err) {
-		console.error(colors.red(err.stack));
-	} else {
-		console.log(colors.green('Done'));
-	}
+var createErrorLogger = function(options) {
+	return function(err) {
+		if (err) {
+			if (options.trace) {
+				console.error(colors.red(err.stack));
+			} else {
+				console.error(colors.red('Error: %s'), err.message);
+			}
+		}
+	};
 };
 
 var printPkgInfo = function(pkgInfo, options) {
@@ -84,12 +88,16 @@ var printPkgsList = function(options) {
 			} else {
 				console.log('Installed packages are not found');
 			}
+
+			this.pass(null);
 		},
-		complete
+		createErrorLogger(options.parent)
 	);
 };
 
-program.version(packageJson.version);
+program
+	.version(packageJson.version)
+	.option('--trace', 'Show stack trace on error');
 
 program.command('install <source>')
 	.alias('i')
@@ -123,9 +131,16 @@ program.command('install <source>')
 					installOptions.auth = auth;
 				}
 
+				console.log('Install new package from "%s"', src);
+
 				npack.install(src, installOptions, this.slot());
 			},
-			complete
+			function() {
+				console.log(colors.green('Done'));
+
+				this.pass(null);
+			},
+			createErrorLogger(options.parent)
 		);
 	});
 
@@ -137,14 +152,14 @@ program.command('list')
 
 program.command('ll')
 	.description('Print list with extended info, alias for "ls -i"')
-	.action(function() {
-		printPkgsList({info: true});
+	.action(function(options) {
+		printPkgsList(_({info: true}).extend(options));
 	});
 
 program.command('current')
 	.alias('cur')
 	.description('Print info about current package')
-	.action(function() {
+	.action(function(options) {
 		Steppy(
 			function() {
 				npack.getCurrentInfo({root: process.cwd()}, this.slot());
@@ -157,37 +172,46 @@ program.command('current')
 				} else {
 					console.log('Current package is not set');
 				}
+
+				this.pass(null);
 			},
-			complete
+			createErrorLogger(options.parent)
 		);
 	});
 
 program.command('info <package>')
 	.description('Print info about intalled package')
-	.action(function(pkg) {
+	.action(function(pkg, options) {
 		Steppy(
 			function() {
+				console.log('Package "%s" info:', pkg);
+
 				npack.getInfo(pkg, {root: process.cwd()}, this.slot());
 			},
 			function(err, pkgInfo) {
-				console.log('Package "%s" info:', pkg);
-
 				printPkgInfo(pkgInfo, {markCurrent: true});
+
+				this.pass(null);
 			},
-			complete
+			createErrorLogger(options.parent)
 		);
 	});
 
 program.command('use <package>')
 	.description('Set package as current')
-	.action(function(pkg) {
+	.action(function(pkg, options) {
 		Steppy(
 			function() {
 				console.log('Set "%s" as current package', pkg);
 
 				npack.use(pkg, {root: process.cwd()}, this.slot());
 			},
-			complete
+			function() {
+				console.log(colors.green('Done'));
+
+				this.pass(null);
+			},
+			createErrorLogger(options.parent)
 		);
 	});
 
@@ -195,27 +219,37 @@ program.command('uninstall <package>')
 	.alias('remove')
 	.alias('rm')
 	.description('Uninstall package')
-	.action(function(pkg) {
+	.action(function(pkg, options) {
 		Steppy(
 			function() {
 				console.log('Uninstall package "%s"', pkg);
 
 				npack.uninstall(pkg, {root: process.cwd()}, this.slot());
 			},
-			complete
+			function() {
+				console.log(colors.green('Done'));
+
+				this.pass(null);
+			},
+			createErrorLogger(options.parent)
 		);
 	});
 
 program.command('clean')
 	.description('Uninstall all packages except current')
-	.action(function() {
+	.action(function(options) {
 		Steppy(
 			function() {
 				console.log('Clean inactive packages');
 
 				npack.clean({root: process.cwd()}, this.slot());
 			},
-			complete
+			function() {
+				console.log(colors.green('Done'));
+
+				this.pass(null);
+			},
+			createErrorLogger(options.parent)
 		);
 	});
 
