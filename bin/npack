@@ -58,7 +58,7 @@ var printPkgInfo = function(pkgInfo, options) {
 var printPkgsList = function(options) {
 	Steppy(
 		function() {
-			npack.getList({root: process.cwd()}, this.slot());
+			npack.getList({dir: process.cwd()}, this.slot());
 		},
 		function(err, pkgInfos) {
 			if (pkgInfos.length) {
@@ -110,7 +110,7 @@ program.command('install <source>')
 		'-f, --force',
 		'Install package even if such version is already installed'
 	)
-	.option('-l, --log', 'Show detailed log of installation')
+	.option('-l, --log', 'Show detailed log')
 	.action(function(src, options) {
 		Steppy(
 			function() {
@@ -127,7 +127,10 @@ program.command('install <source>')
 				var installOptions = _(options)
 					.chain()
 					.pick('force', 'log')
-					.extend({root: process.cwd()})
+					.extend({
+						src: src,
+						dir: process.cwd()
+					})
 					.value();
 
 				if (options.user) {
@@ -137,10 +140,13 @@ program.command('install <source>')
 
 				console.log('Install new package from "%s"', src);
 
-				npack.install(src, installOptions, this.slot());
+				npack.install(installOptions, this.slot());
 			},
-			function() {
+			function(err, pkgInfo) {
 				console.log(colors.green('Done'));
+
+				console.log('\nInstalled package info:');
+				printPkgInfo(pkgInfo, {markCurrent: true});
 
 				this.pass(null);
 			},
@@ -166,12 +172,12 @@ program.command('current')
 	.action(function(options) {
 		Steppy(
 			function() {
-				npack.getCurrentInfo({root: process.cwd()}, this.slot());
+				console.log('Current package info:');
+
+				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
 			},
 			function(err, pkgInfo) {
 				if (pkgInfo) {
-					console.log('Current package info:');
-
 					printPkgInfo(pkgInfo);
 				} else {
 					console.log('Current package is not set');
@@ -185,12 +191,15 @@ program.command('current')
 
 program.command('info <package>')
 	.description('Print info about intalled package')
-	.action(function(pkg, options) {
+	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Package "%s" info:', pkg);
+				console.log('Package info:');
 
-				npack.getInfo(pkg, {root: process.cwd()}, this.slot());
+				npack.getInfo({
+					name: name,
+					dir: process.cwd()
+				}, this.slot());
 			},
 			function(err, pkgInfo) {
 				printPkgInfo(pkgInfo, {markCurrent: true});
@@ -203,19 +212,22 @@ program.command('info <package>')
 
 program.command('use <package>')
 	.description('Set package as current')
-	.option('-l, --log', 'Show detailed log of installation')
-	.action(function(pkg, options) {
+	.option('-l, --log', 'Show detailed log')
+	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Set "%s" as current package', pkg);
+				console.log('Set "%s" as current package', name);
 
 				var useOptions = _(options)
 					.chain()
 					.pick('log')
-					.extend({root: process.cwd()})
+					.extend({
+						name: name,
+						dir: process.cwd()
+					})
 					.value();
 
-				npack.use(pkg, useOptions, this.slot());
+				npack.use(useOptions, this.slot());
 			},
 			function() {
 				console.log(colors.green('Done'));
@@ -230,19 +242,22 @@ program.command('uninstall <package>')
 	.alias('remove')
 	.alias('rm')
 	.description('Uninstall package')
-	.option('-l, --log', 'Show detailed log of installation')
-	.action(function(pkg, options) {
+	.option('-l, --log', 'Show detailed log')
+	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Uninstall package "%s"', pkg);
+				console.log('Uninstall package "%s"', name);
 
 				var uninstallOptions = _(options)
 					.chain()
 					.pick('log')
-					.extend({root: process.cwd()})
+					.extend({
+						name: name,
+						dir: process.cwd()
+					})
 					.value();
 
-				npack.uninstall(pkg, uninstallOptions, this.slot());
+				npack.uninstall(uninstallOptions, this.slot());
 			},
 			function() {
 				console.log(colors.green('Done'));
@@ -255,12 +270,19 @@ program.command('uninstall <package>')
 
 program.command('clean')
 	.description('Uninstall all packages except current')
+	.option('-l, --log', 'Show detailed log')
 	.action(function(options) {
 		Steppy(
 			function() {
 				console.log('Clean inactive packages');
 
-				npack.clean({root: process.cwd()}, this.slot());
+				var cleanOptions = _(options)
+					.chain()
+					.pick('log')
+					.extend({dir: process.cwd()})
+					.value();
+
+				npack.clean(cleanOptions, this.slot());
 			},
 			function() {
 				console.log(colors.green('Done'));
