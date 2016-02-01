@@ -8,7 +8,9 @@ var program = require('commander'),
 	_ = require('underscore'),
 	Steppy = require('twostep').Steppy,
 	colors = require('colors/safe'),
-	read = require('read');
+	read = require('read'),
+	processUtils = require('../lib/utils/process'),
+	path = require('path');
 
 var createErrorLogger = function(options) {
 	return function(err) {
@@ -32,26 +34,31 @@ var printPkgInfo = function(pkgInfo, options) {
 
 	if (options.markCurrent && pkgInfo.current) {
 		console.log(
-			colors.green(spacesStr + 'name:        %s [*current]'),
+			colors.green('%sname:        %s [*current]'),
+			spacesStr,
 			pkgInfo.name
 		);
 	} else {
-		console.log(spacesStr + 'name:        %s', pkgInfo.name);
+		console.log('%sname:        %s', spacesStr, pkgInfo.name);
 	}
 
-	console.log(spacesStr + 'path:        %s', pkgInfo.path);
+	console.log('%spath:        %s', spacesStr, pkgInfo.path);
 
 	if (pkgInfo.npm) {
-		console.log(spacesStr + 'npm name:    %s', pkgInfo.npm.name);
-		console.log(spacesStr + 'npm version: %s', pkgInfo.npm.version);
+		console.log('%snpm name:    %s', spacesStr, pkgInfo.npm.name);
+		console.log('%snpm version: %s', spacesStr, pkgInfo.npm.version);
 	}
 
 	if (!_(pkgInfo.hooks).isEmpty()) {
-		console.log(spacesStr + 'hooks:');
+		console.log('%shooks:', spacesStr);
 
 		_(pkgInfo.hooks).each(function(action, hook) {
-			console.log(spacesStr + '  %s: %s', hook, action);
+			console.log('%s  %s: %s', spacesStr, hook, action);
 		});
+	}
+
+	if (!_(pkgInfo.scripts).isEmpty()) {
+		console.log('%sscripts: %s', spacesStr, _(pkgInfo.scripts).keys().join(', '));
 	}
 };
 
@@ -61,33 +68,31 @@ var printPkgsList = function(options) {
 			npack.getList({dir: process.cwd()}, this.slot());
 		},
 		function(err, pkgInfos) {
-			if (pkgInfos.length) {
-				console.log('Installed packages:');
+			if (!pkgInfos.length) throw new Error('Installed packages are not found');
 
-				_(pkgInfos).each(function(pkgInfo, index) {
-					if (options.info && index ) console.log('');
+			console.log('Installed packages:');
 
-					var str = '  ' + pkgInfo.name;
+			_(pkgInfos).each(function(pkgInfo, index) {
+				if (options.info && index ) console.log('');
 
-					if (pkgInfo.npm) {
-						str += ' (' + pkgInfo.npm.name + ' ' + pkgInfo.npm.version + ')';
-					}
+				var str = '  ' + pkgInfo.name;
 
-					if (pkgInfo.current) {
-						str += ' [*current]';
+				if (pkgInfo.npm) {
+					str += ' (' + pkgInfo.npm.name + ' ' + pkgInfo.npm.version + ')';
+				}
 
-						str = colors.green(str);
-					}
+				if (pkgInfo.current) {
+					str += ' [*current]';
 
-					console.log(str);
+					str = colors.green(str);
+				}
 
-					if (options.info) {
-						printPkgInfo(pkgInfo, {spaces: 4});
-					}
-				});
-			} else {
-				console.log('Installed packages are not found');
-			}
+				console.log(str);
+
+				if (options.info) {
+					printPkgInfo(pkgInfo, {spaces: 4});
+				}
+			});
 
 			this.pass(null);
 		},
@@ -172,16 +177,14 @@ program.command('current')
 	.action(function(options) {
 		Steppy(
 			function() {
-				console.log('Current package info:');
-
 				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
 			},
 			function(err, pkgInfo) {
-				if (pkgInfo) {
-					printPkgInfo(pkgInfo);
-				} else {
-					console.log('Current package is not set');
-				}
+				if (!pkgInfo) throw new Error('Current package is not set');
+
+				console.log('Current package info:');
+
+				printPkgInfo(pkgInfo);
 
 				this.pass(null);
 			},
@@ -194,14 +197,16 @@ program.command('info <package>')
 	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Package info:');
-
 				npack.getInfo({
 					name: name,
 					dir: process.cwd()
 				}, this.slot());
 			},
 			function(err, pkgInfo) {
+				if (!pkgInfo) throw new Error('Package "' + name + '" is not found');
+
+				console.log('Package info:');
+
 				printPkgInfo(pkgInfo, {markCurrent: true});
 
 				this.pass(null);
@@ -216,7 +221,7 @@ program.command('use <package>')
 	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Set "%s" as current package', name);
+				console.log('Set package "%s" as current', name);
 
 				var useOptions = _(options)
 					.chain()
@@ -288,6 +293,47 @@ program.command('clean')
 				console.log(colors.green('Done'));
 
 				this.pass(null);
+			},
+			createErrorLogger(options.parent)
+		);
+	});
+
+program.command('run [script] [args...]')
+	.description('Execute "npm run" task from current package')
+	.action(function(script, args, options) {
+		Steppy(
+			function() {
+				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
+			},
+			function(err, pkgInfo) {
+				if (!pkgInfo) throw new Error('Current package is not set');
+
+				if (!script) {
+					if (_(pkgInfo.scripts).isEmpty()) {
+						throw new Error('Scripts list is not found');
+					} else {
+						console.log('Scripts list for current package:');
+
+						_(pkgInfo.scripts).each(function(script, name) {
+							console.log('  %s', name);
+							console.log('    %s', script || '-');
+						});
+					}
+
+					return;
+				}
+
+				if (_(pkgInfo.scripts).has(script)) {
+					console.log('> npm run %s', script);
+
+					processUtils.execScript('npm run ' + script, {
+						cwd: path.join(process.cwd(), 'package'),
+						dir: process.cwd(),
+						log: true
+					}, this.slot());
+				} else {
+					throw new Error('Unknown script "' + script + '"');
+				}
 			},
 			createErrorLogger(options.parent)
 		);
