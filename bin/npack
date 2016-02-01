@@ -7,106 +7,15 @@ var program = require('commander'),
 	packageJson = require('../package.json'),
 	_ = require('underscore'),
 	Steppy = require('twostep').Steppy,
-	colors = require('colors/safe'),
 	read = require('read'),
 	processUtils = require('../lib/utils/process'),
-	path = require('path');
+	logger = require('../lib/utils/logger');
 
-var createErrorLogger = function(options) {
-	return function(err) {
-		if (err) {
-			if (options.trace) {
-				console.error(colors.red(err.stack));
-			} else {
-				console.error(colors.red('Error: %s'), err.message);
-			}
-		}
-	};
-};
-
-var printPkgInfo = function(pkgInfo, options) {
-	options = _({}).defaults(options, {
-		markCurrent: false,
-		spaces: 2
-	});
-
-	var spacesStr = (new Array(options.spaces + 1)).join(' ');
-
-	if (options.markCurrent && pkgInfo.current) {
-		console.log(
-			colors.green('%sname:        %s [*current]'),
-			spacesStr,
-			pkgInfo.name
-		);
-	} else {
-		console.log('%sname:        %s', spacesStr, pkgInfo.name);
-	}
-
-	console.log('%spath:        %s', spacesStr, pkgInfo.path);
-
-	if (pkgInfo.npm) {
-		console.log('%snpm name:    %s', spacesStr, pkgInfo.npm.name);
-		console.log('%snpm version: %s', spacesStr, pkgInfo.npm.version);
-	}
-
-	if (!_(pkgInfo.hooks).isEmpty()) {
-		console.log('%shooks:', spacesStr);
-
-		_(pkgInfo.hooks).each(function(action, hook) {
-			console.log('%s  %s: %s', spacesStr, hook, action);
-		});
-	}
-
-	if (!_(pkgInfo.scripts).isEmpty()) {
-		console.log('%sscripts: %s', spacesStr, _(pkgInfo.scripts).keys().join(', '));
-	}
-};
-
-var printPkgsList = function(options) {
-	Steppy(
-		function() {
-			npack.getList({dir: process.cwd()}, this.slot());
-		},
-		function(err, pkgInfos) {
-			if (!pkgInfos.length) throw new Error('Installed packages are not found');
-
-			console.log('Installed packages:');
-
-			_(pkgInfos).each(function(pkgInfo, index) {
-				if (options.info && index ) console.log('');
-
-				var str = '  ' + pkgInfo.name;
-
-				if (pkgInfo.npm) {
-					str += ' (' + pkgInfo.npm.name + ' ' + pkgInfo.npm.version + ')';
-				}
-
-				if (pkgInfo.current) {
-					str += ' [*current]';
-
-					str = colors.green(str);
-				}
-
-				console.log(str);
-
-				if (options.info) {
-					printPkgInfo(pkgInfo, {spaces: 4});
-				}
-			});
-
-			this.pass(null);
-		},
-		createErrorLogger(options.parent)
-	);
-};
-
-program
-	.version(packageJson.version)
-	.option('--trace', 'Show stack trace on error');
+program.version(packageJson.version);
 
 program.command('install <source>')
 	.alias('i')
-	.description('Install new package')
+	.description('Install new package version')
 	.option(
 		'-u, --user <USER[:PASSWORD]>',
 		'User for basic authentication, PASSWORD will be promted if omitted'
@@ -115,7 +24,9 @@ program.command('install <source>')
 		'-f, --force',
 		'Install package even if such version is already installed'
 	)
-	.option('-l, --log', 'Show detailed log')
+	.option('-U, --no-use', 'Prevent switching to new package')
+	.option('-L, --no-log', 'Disable detailed log')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(src, options) {
 		Steppy(
 			function() {
@@ -131,7 +42,7 @@ program.command('install <source>')
 			function(err, password) {
 				var installOptions = _(options)
 					.chain()
-					.pick('force', 'log')
+					.pick('force', 'log', 'use')
 					.extend({
 						src: src,
 						dir: process.cwd()
@@ -143,37 +54,53 @@ program.command('install <source>')
 					installOptions.auth = auth;
 				}
 
-				console.log('Install new package from "%s"', src);
-
 				npack.install(installOptions, this.slot());
 			},
 			function(err, pkgInfo) {
-				console.log(colors.green('Done'));
-
-				console.log('\nInstalled package info:');
-				printPkgInfo(pkgInfo, {markCurrent: true});
+				logger.log('Installed package info:');
+				logger.writePkgInfo(pkgInfo, {markCurrent: true});
 
 				this.pass(null);
 			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
 	});
+
+var list = function(options) {
+	Steppy(
+		function() {
+			npack.getList({dir: process.cwd()}, this.slot());
+		},
+		function(err, pkgInfos) {
+			if (!pkgInfos.length) throw new Error('Installed packages are not found');
+
+			logger.log('Installed packages:');
+			logger.writePkgsList(pkgInfos, options);
+
+			this.pass(null);
+		},
+		logger.createErrorLogger(options)
+	);
+};
 
 program.command('list')
 	.alias('ls')
 	.description('Print list of installed packages')
 	.option('-i, --info', 'Show extended info about each package')
-	.action(printPkgsList);
+	.option('--trace', 'Show stack trace on error')
+	.action(list);
 
 program.command('ll')
 	.description('Print list with extended info, alias for "ls -i"')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(options) {
-		printPkgsList(_({info: true}).extend(options));
+		list(_({info: true}).extend(options));
 	});
 
 program.command('current')
 	.alias('cur')
 	.description('Print info about current package')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(options) {
 		Steppy(
 			function() {
@@ -182,18 +109,18 @@ program.command('current')
 			function(err, pkgInfo) {
 				if (!pkgInfo) throw new Error('Current package is not set');
 
-				console.log('Current package info:');
-
-				printPkgInfo(pkgInfo);
+				logger.log('Current package info:');
+				logger.writePkgInfo(pkgInfo);
 
 				this.pass(null);
 			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
 	});
 
 program.command('info <package>')
 	.description('Print info about intalled package')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(name, options) {
 		Steppy(
 			function() {
@@ -205,24 +132,22 @@ program.command('info <package>')
 			function(err, pkgInfo) {
 				if (!pkgInfo) throw new Error('Package "' + name + '" is not found');
 
-				console.log('Package info:');
-
-				printPkgInfo(pkgInfo, {markCurrent: true});
+				logger.log('Package info:');
+				logger.writePkgInfo(pkgInfo, {markCurrent: true});
 
 				this.pass(null);
 			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
 	});
 
 program.command('use <package>')
 	.description('Set package as current')
-	.option('-l, --log', 'Show detailed log')
+	.option('-L, --no-log', 'Disable detailed log')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Set package "%s" as current', name);
-
 				var useOptions = _(options)
 					.chain()
 					.pick('log')
@@ -234,12 +159,13 @@ program.command('use <package>')
 
 				npack.use(useOptions, this.slot());
 			},
-			function() {
-				console.log(colors.green('Done'));
+			function(err, pkgInfo) {
+				logger.log('Current package info:');
+				logger.writePkgInfo(pkgInfo);
 
 				this.pass(null);
 			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
 	});
 
@@ -247,12 +173,11 @@ program.command('uninstall <package>')
 	.alias('remove')
 	.alias('rm')
 	.description('Uninstall package')
-	.option('-l, --log', 'Show detailed log')
+	.option('-L, --no-log', 'Disable detailed log')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(name, options) {
 		Steppy(
 			function() {
-				console.log('Uninstall package "%s"', name);
-
 				var uninstallOptions = _(options)
 					.chain()
 					.pick('log')
@@ -264,23 +189,17 @@ program.command('uninstall <package>')
 
 				npack.uninstall(uninstallOptions, this.slot());
 			},
-			function() {
-				console.log(colors.green('Done'));
-
-				this.pass(null);
-			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
 	});
 
 program.command('clean')
 	.description('Uninstall all packages except current')
-	.option('-l, --log', 'Show detailed log')
+	.option('-L, --no-log', 'Disable detailed log')
+	.option('--trace', 'Show stack trace on error')
 	.action(function(options) {
 		Steppy(
 			function() {
-				console.log('Clean inactive packages');
-
 				var cleanOptions = _(options)
 					.chain()
 					.pick('log')
@@ -289,18 +208,15 @@ program.command('clean')
 
 				npack.clean(cleanOptions, this.slot());
 			},
-			function() {
-				console.log(colors.green('Done'));
-
-				this.pass(null);
-			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
 	});
 
-program.command('run [script] [args...]')
+program.command('run [script]')
 	.description('Execute "npm run" task from current package')
-	.action(function(script, args, options) {
+	.option('-L, --no-log', 'Disable detailed log')
+	.option('--trace', 'Show stack trace on error')
+	.action(function(script, options) {
 		Steppy(
 			function() {
 				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
@@ -312,31 +228,33 @@ program.command('run [script] [args...]')
 					if (_(pkgInfo.scripts).isEmpty()) {
 						throw new Error('Scripts list is not found');
 					} else {
-						console.log('Scripts list for current package:');
-
-						_(pkgInfo.scripts).each(function(script, name) {
-							console.log('  %s', name);
-							console.log('    %s', script || '-');
-						});
+						logger.log('Scripts list for current package:');
+						logger.writeScriptsList(pkgInfo.scripts);
 					}
 
 					return;
 				}
 
 				if (_(pkgInfo.scripts).has(script)) {
-					console.log('> npm run %s', script);
+					logger.log('Execute script "npm run %s"', script);
 
 					processUtils.execScript('npm run ' + script, {
-						cwd: path.join(process.cwd(), 'package'),
+						cwd: pkgInfo.path,
 						dir: process.cwd(),
-						log: true
+						log: options.log
 					}, this.slot());
 				} else {
 					throw new Error('Unknown script "' + script + '"');
 				}
 			},
-			createErrorLogger(options.parent)
+			logger.createErrorLogger(options)
 		);
+	});
+
+program
+	.command('*')
+	.action(function(name) {
+		logger.createErrorLogger({})(new Error('Unknown command "' + name + '"'));
 	});
 
 program.parse(process.argv);
