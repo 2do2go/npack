@@ -1,5 +1,7 @@
 # npack
 
+[![Build Status](https://travis-ci.org/2do2go/npack.svg?branch=master)](https://travis-ci.org/2do2go/npack)
+
 npack - node.js packages manipulation tool. It provides few methods to install new package, fast switch between package versions, clean installed package.
 
 ## Installation
