@@ -16,7 +16,7 @@
     "npack": "./bin/npack"
   },
   "scripts": {
-    "test": "mocha test"
+    "test": "mocha --bail --reporter spec test/"
   },
   "repository": {
     "type": "git",
@@ -29,8 +29,10 @@
   },
   "homepage": "https://github.com/2do2go/npack",
   "devDependencies": {
+    "chai": "3.5.0",
     "expect.js": "0.3.1",
-    "mocha": "2.4.2"
+    "mocha": "2.4.5",
+    "node-static": "0.7.7"
   },
   "dependencies": {
     "colors": "1.1.2",

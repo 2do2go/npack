@@ -14,6 +14,12 @@
 	"immed": true,
 	"eqeqeq": true,
 	"globals": {
-		"JSON": false
+		"JSON": false,
+		"describe": false,
+		"it": false,
+		"before": false,
+		"after": false,
+		"beforeEach": false,
+		"afterEach": false
 	}
 }

@@ -1,0 +1,213 @@
+'use strict';
+
+var Steppy = require('twostep').Steppy;
+var fse = require('fs-extra');
+var path = require('path');
+var helpers = require('./helpers');
+var staticServer = require('./staticServer');
+var npack = require('../lib/npack');
+
+describe('.install()', function() {
+	describe('should return an error', function() {
+		it('if required option `src` is not set', function(done) {
+			npack.install({}, function(err) {
+				helpers.checkError(err, 'Option "src" is required');
+				done();
+			});
+		});
+
+		it('if required option `dir` is not set', function(done) {
+			npack.install({src: 'a'}, function(err) {
+				helpers.checkError(err, 'Option "dir" is required');
+				done();
+			});
+		});
+
+		it('if source does not exist', function(done) {
+			var src = path.join(helpers.fixturesDir, 'unknown.tar.gz');
+
+			npack.install({src: src, dir: helpers.tempDir}, function(err) {
+				helpers.checkError(err, 'Local source "' + src + '" does not exist');
+				done();
+			});
+		});
+	});
+
+	describe('package installation', function() {
+		before(function(done) {
+			staticServer.start(helpers.fixturesDir, done);
+		});
+
+		after(function(done) {
+			staticServer.stop(done);
+		});
+
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should be ok with local tar.gz source', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should be ok with local folder source', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should be ok with remote tar.gz source', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: staticServer.baseUrl + 'simple.tar.gz',
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it(
+			'should fail if package with such name/version is already installed',
+			function(done) {
+				Steppy(
+					function() {
+						npack.install({
+							src: staticServer.baseUrl + 'simple.tar.gz',
+							dir: helpers.tempDir
+						}, this.slot());
+					},
+					function() {
+						npack.install({
+							src: staticServer.baseUrl + 'simple.tar.gz',
+							dir: helpers.tempDir
+						}, this.slot());
+					},
+					function(err) {
+						helpers.checkError(
+							err,
+							'Package with npm name "test" and version "1.0.0" already installed'
+						);
+						done();
+					}
+				);
+			}
+		);
+
+		it(
+			'should repeatedly install existing package with `force` option',
+			function(done) {
+				Steppy(
+					function() {
+						npack.install({
+							src: staticServer.baseUrl + 'simple.tar.gz',
+							dir: helpers.tempDir
+						}, this.slot());
+					},
+					function(err, pkgInfo) {
+						helpers.checkPkgExists(pkgInfo, true, this.slot());
+					},
+					function() {
+						npack.install({
+							src: staticServer.baseUrl + 'simple.tar.gz',
+							dir: helpers.tempDir,
+							force: true
+						}, this.slot());
+					},
+					function(err, pkgInfo) {
+						helpers.checkPkgExists(pkgInfo, true, this.slot());
+					},
+					done
+				);
+			}
+		);
+	});
+
+	describe('hooks', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should return error if `preinstall` hook fails', function(done) {
+			npack.install({
+				src: path.join(helpers.fixturesDir, 'preinstall-fail.tar.gz'),
+				dir: helpers.tempDir
+			}, function(err) {
+				helpers.checkError(err, 'Command "exit 1" failed with exit code: 1');
+				done();
+			});
+		});
+
+		it('should call `preinstall` hook', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'preinstall-success.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function() {
+					helpers.checkSuccessHookResult('preinstall', this.slot());
+				},
+				done
+			);
+		});
+
+		it('should return error if `postinstall` hook fails', function(done) {
+			npack.install({
+				src: path.join(helpers.fixturesDir, 'postinstall-fail.tar.gz'),
+				dir: helpers.tempDir
+			}, function(err) {
+				helpers.checkError(err, 'Command "exit 1" failed with exit code: 1');
+				done();
+			});
+		});
+
+		it('should call `postinstall` hook', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'postinstall-success.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function() {
+					helpers.checkSuccessHookResult('postinstall', this.slot());
+				},
+				done
+			);
+		});
+	});
+});
