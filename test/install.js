@@ -101,13 +101,13 @@ describe('.install()', function() {
 				Steppy(
 					function() {
 						npack.install({
-							src: staticServer.baseUrl + 'simple.tar.gz',
+							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
 							dir: helpers.tempDir
 						}, this.slot());
 					},
 					function() {
 						npack.install({
-							src: staticServer.baseUrl + 'simple.tar.gz',
+							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
 							dir: helpers.tempDir
 						}, this.slot());
 					},
@@ -128,7 +128,7 @@ describe('.install()', function() {
 				Steppy(
 					function() {
 						npack.install({
-							src: staticServer.baseUrl + 'simple.tar.gz',
+							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
 							dir: helpers.tempDir
 						}, this.slot());
 					},
@@ -137,7 +137,7 @@ describe('.install()', function() {
 					},
 					function() {
 						npack.install({
-							src: staticServer.baseUrl + 'simple.tar.gz',
+							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
 							dir: helpers.tempDir,
 							force: true
 						}, this.slot());
