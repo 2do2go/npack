@@ -111,6 +111,28 @@ describe('.uninstall()', function() {
 			);
 		});
 
+		it('should skip `preuninstall` hook if it`s disabled', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'preuninstall-success.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					npack.uninstall({
+						name: pkgInfo.name,
+						dir: helpers.tempDir,
+						disabledHooks: ['preuninstall']
+					}, this.slot());
+				},
+				function() {
+					helpers.checkDisabledHookResult('preuninstall', this.slot());
+				},
+				done
+			);
+		});
+
 		it('should return an error if `postuninstall` hook fails', function(done) {
 			Steppy(
 				function() {
@@ -142,6 +164,28 @@ describe('.uninstall()', function() {
 				},
 				function() {
 					helpers.checkSuccessHookResult('postuninstall', this.slot());
+				},
+				done
+			);
+		});
+
+		it('should skip `postuninstall` hook if it`s disabled', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'postuninstall-success.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					npack.uninstall({
+						name: pkgInfo.name,
+						dir: helpers.tempDir,
+						disabledHooks: ['postuninstall']
+					}, this.slot());
+				},
+				function() {
+					helpers.checkDisabledHookResult('postuninstall', this.slot());
 				},
 				done
 			);

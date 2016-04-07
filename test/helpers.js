@@ -36,6 +36,26 @@ exports.checkSuccessHookResult = function(hook, callback) {
 	);
 };
 
+exports.checkDisabledHookResult = function(hook, callback) {
+	Steppy(
+		function() {
+			var stepCallback = this.slot();
+			fse.exists(
+				path.join(exports.tempDir, hook + '-hook'),
+				function(fileExists) {
+					stepCallback(null, fileExists);
+				}
+			);
+		},
+		function(err, fileExists) {
+			expect(fileExists).to.be(false);
+
+			this.pass(null);
+		},
+		callback
+	);
+};
+
 exports.checkPkgExists = function(pkgInfo, expected, callback) {
 	Steppy(
 		function() {

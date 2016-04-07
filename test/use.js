@@ -103,6 +103,28 @@ describe('.use()', function() {
 			);
 		});
 
+		it('should skip `preuse` hook if it`s disabled', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'preuse-success.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					npack.use({
+						name: pkgInfo.name,
+						dir: helpers.tempDir,
+						disabledHooks: ['preuse']
+					}, this.slot());
+				},
+				function() {
+					helpers.checkDisabledHookResult('preuse', this.slot());
+				},
+				done
+			);
+		});
+
 		it('should return an error if `postuse` hook fails', function(done) {
 			Steppy(
 				function() {
@@ -134,6 +156,28 @@ describe('.use()', function() {
 				},
 				function() {
 					helpers.checkSuccessHookResult('postuse', this.slot());
+				},
+				done
+			);
+		});
+
+		it('should skip `postuse` hook if it`s disabled', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'postuse-success.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					npack.use({
+						name: pkgInfo.name,
+						dir: helpers.tempDir,
+						disabledHooks: ['postuse']
+					}, this.slot());
+				},
+				function() {
+					helpers.checkDisabledHookResult('postuse', this.slot());
 				},
 				done
 			);

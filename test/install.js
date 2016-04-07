@@ -185,6 +185,22 @@ describe('.install()', function() {
 			);
 		});
 
+		it('should skip `preinstall` hook if it`s disabled', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'preinstall-success.tar.gz'),
+						dir: helpers.tempDir,
+						disabledHooks: ['preinstall']
+					}, this.slot());
+				},
+				function() {
+					helpers.checkDisabledHookResult('preinstall', this.slot());
+				},
+				done
+			);
+		});
+
 		it('should return error if `postinstall` hook fails', function(done) {
 			npack.install({
 				src: path.join(helpers.fixturesDir, 'postinstall-fail.tar.gz'),
@@ -205,6 +221,22 @@ describe('.install()', function() {
 				},
 				function() {
 					helpers.checkSuccessHookResult('postinstall', this.slot());
+				},
+				done
+			);
+		});
+
+		it('should skip `postinstall` hook if it`s disabled', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'postinstall-success.tar.gz'),
+						dir: helpers.tempDir,
+						disabledHooks: ['postinstall']
+					}, this.slot());
+				},
+				function() {
+					helpers.checkDisabledHookResult('postinstall', this.slot());
 				},
 				done
 			);
