@@ -91,7 +91,7 @@ exports.checkCurrentPkg = function(pkgInfo, callback) {
 			fse.readlink(linkPath, this.slot());
 		},
 		function(err, pkgPath) {
-			expect(pkgInfo.path).to.be(pkgPath);
+			expect(path.relative(exports.tempDir, pkgInfo.path)).to.be(pkgPath);
 
 			this.pass(null);
 		},
