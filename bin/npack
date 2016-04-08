@@ -303,3 +303,8 @@ program
 	});
 
 program.parse(process.argv);
+
+// show help when no args
+if (!process.argv.slice(2).length) {
+	program.outputHelp();
+}
