@@ -39,13 +39,7 @@ exports.checkSuccessHookResult = function(hook, callback) {
 exports.checkDisabledHookResult = function(hook, callback) {
 	Steppy(
 		function() {
-			var stepCallback = this.slot();
-			fse.exists(
-				path.join(exports.tempDir, hook + '-hook'),
-				function(fileExists) {
-					stepCallback(null, fileExists);
-				}
-			);
+			exports.exists(path.join(exports.tempDir, hook + '-hook'), this.slot());
 		},
 		function(err, fileExists) {
 			expect(fileExists).to.be(false);
