@@ -1,6 +1,6 @@
 {
   "name": "npack",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Node.js packages manipulation scripts",
   "keywords": [
     "package",
