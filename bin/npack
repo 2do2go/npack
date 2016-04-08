@@ -283,7 +283,7 @@ program.command('run [script]')
 				if (_(pkgInfo.scripts).has(script)) {
 					logger.log('Execute script "npm run %s"', script);
 
-					processUtils.execScript('npm run ' + script, {
+					processUtils.execScript('npm run --silent ' + script, {
 						cwd: pkgInfo.path,
 						dir: process.cwd(),
 						log: options.log
