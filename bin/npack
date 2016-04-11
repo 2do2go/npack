@@ -9,7 +9,8 @@ var program = require('commander'),
 	Steppy = require('twostep').Steppy,
 	read = require('read'),
 	processUtils = require('../lib/utils/process'),
-	logger = require('../lib/utils/logger');
+	logger = require('../lib/utils/logger'),
+	path = require('path');
 
 program.version(packageJson.version);
 
@@ -37,6 +38,8 @@ var parseDisabledHooks = function(disableHooks, commands) {
 	}
 };
 
+var defaultConfigPath = path.join(process.cwd(), '.npackrc');
+
 program.command('install <source>')
 	.alias('i')
 	.description('Install new package version')
@@ -55,9 +58,19 @@ program.command('install <source>')
 		'-H, --disable-hooks [names]',
 		'Disable all or selected hooks e.g. -H preuse,postuse'
 	)
+	.option(
+		'--config <path>',
+		'Config file to use (default is .npackrc from cwd)',
+		defaultConfigPath
+	)
 	.action(function(src, options) {
 		Steppy(
 			function() {
+				npack.loadConfig({
+					path: options.config,
+					log: options.log
+				}, this.slot());
+
 				if (options.user && options.user.indexOf(':') === -1) {
 					read({
 						prompt: 'Enter password for user "' + options.user + '":',
@@ -67,7 +80,7 @@ program.command('install <source>')
 					this.pass(null);
 				}
 			},
-			function(err, password) {
+			function(err, config, password) {
 				var installOptions = _(options)
 					.chain()
 					.pick('force', 'log', 'use')
@@ -76,7 +89,8 @@ program.command('install <source>')
 						dir: process.cwd(),
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['install', 'use']
-						)
+						),
+						env: config.env
 					})
 					.value();
 
@@ -180,9 +194,20 @@ program.command('use <package>')
 		'-H, --disable-hooks [names]',
 		'Disable all or selected hooks e.g. -H preuse,postuse'
 	)
+	.option(
+		'--config <path>',
+		'Config file to use (default is .npackrc from cwd)',
+		defaultConfigPath
+	)
 	.action(function(name, options) {
 		Steppy(
 			function() {
+				npack.loadConfig({
+					path: options.config,
+					log: options.log
+				}, this.slot());
+			},
+			function(err, config) {
 				var useOptions = _(options)
 					.chain()
 					.pick('log')
@@ -191,7 +216,8 @@ program.command('use <package>')
 						dir: process.cwd(),
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['use']
-						)
+						),
+						env: options.env
 					})
 					.value();
 
@@ -217,9 +243,20 @@ program.command('uninstall <package>')
 		'-H, --disable-hooks [names]',
 		'Disable all or selected hooks e.g. -H preuse,postuse'
 	)
+	.option(
+		'--config <path>',
+		'Config file to use (default is .npackrc from cwd)',
+		defaultConfigPath
+	)
 	.action(function(name, options) {
 		Steppy(
 			function() {
+				npack.loadConfig({
+					path: options.config,
+					log: options.log
+				}, this.slot());
+			},
+			function(err, config) {
 				var uninstallOptions = _(options)
 					.chain()
 					.pick('log')
@@ -228,7 +265,8 @@ program.command('uninstall <package>')
 						dir: process.cwd(),
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['uninstall']
-						)
+						),
+						env: options.env
 					})
 					.value();
 
@@ -261,12 +299,22 @@ program.command('run [script]')
 	.description('Execute "npm run" task from current package')
 	.option('-L, --no-log', 'Disable detailed log')
 	.option('--trace', 'Show stack trace on error')
+	.option(
+		'--config <path>',
+		'Config file to use (default is .npackrc from cwd)',
+		defaultConfigPath
+	)
 	.action(function(script, options) {
 		Steppy(
 			function() {
+				npack.loadConfig({
+					path: options.config,
+					log: options.log
+				}, this.slot());
+
 				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
 			},
-			function(err, pkgInfo) {
+			function(err, config, pkgInfo) {
 				if (!pkgInfo) throw new Error('Current package is not set');
 
 				if (!script) {
@@ -286,7 +334,8 @@ program.command('run [script]')
 					processUtils.execScript('npm run --silent ' + script, {
 						cwd: pkgInfo.path,
 						dir: process.cwd(),
-						log: options.log
+						log: options.log,
+						env: config.env
 					}, this.slot());
 				} else {
 					throw new Error('Unknown script "' + script + '"');
