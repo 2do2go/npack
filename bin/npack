@@ -4,7 +4,6 @@
 
 var program = require('commander'),
 	npack = require('../lib/npack'),
-	packageJson = require('../package.json'),
 	_ = require('underscore'),
 	Steppy = require('twostep').Steppy,
 	read = require('read'),
@@ -13,7 +12,7 @@ var program = require('commander'),
 	path = require('path'),
 	semver = require('semver');
 
-program.version(packageJson.version);
+program.version(npack.version);
 
 // parse disabled hooks from `disableHooks` option for the commands
 var parseDisabledHooks = function(disableHooks, commands) {
@@ -91,8 +90,7 @@ program.command('install <source>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['install', 'use']
 						),
-						env: config.env,
-						version: packageJson.version
+						env: config.env
 					})
 					.value();
 
@@ -219,8 +217,7 @@ program.command('use <package>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['use']
 						),
-						env: config.env,
-						version: packageJson.version
+						env: config.env
 					})
 					.value();
 
@@ -269,8 +266,7 @@ program.command('uninstall <package>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['uninstall']
 						),
-						env: config.env,
-						version: packageJson.version
+						env: config.env
 					})
 					.value();
 
@@ -322,9 +318,9 @@ program.command('run [script]')
 				if (!pkgInfo) throw new Error('Current package is not set');
 
 				if (pkgInfo.compatibility) {
-					if (!semver.satisfies(packageJson.version, pkgInfo.compatibility)) {
+					if (!semver.satisfies(npack.version, pkgInfo.compatibility)) {
 						throw new Error(
-							'Current npack version "' + packageJson.version + '" ' +
+							'Current npack version "' + npack.version + '" ' +
 							'doesn\'t satisfy version required by package: "' +
 							pkgInfo.compatibility + '"'
 						)
