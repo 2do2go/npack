@@ -10,7 +10,8 @@ var program = require('commander'),
 	read = require('read'),
 	processUtils = require('../lib/utils/process'),
 	logger = require('../lib/utils/logger'),
-	path = require('path');
+	path = require('path'),
+	semver = require('semver');
 
 program.version(packageJson.version);
 
@@ -90,7 +91,8 @@ program.command('install <source>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['install', 'use']
 						),
-						env: config.env
+						env: config.env,
+						version: packageJson.version
 					})
 					.value();
 
@@ -217,7 +219,8 @@ program.command('use <package>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['use']
 						),
-						env: config.env
+						env: config.env,
+						version: packageJson.version
 					})
 					.value();
 
@@ -266,7 +269,8 @@ program.command('uninstall <package>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['uninstall']
 						),
-						env: config.env
+						env: config.env,
+						version: packageJson.version
 					})
 					.value();
 
@@ -316,6 +320,16 @@ program.command('run [script]')
 			},
 			function(err, config, pkgInfo) {
 				if (!pkgInfo) throw new Error('Current package is not set');
+
+				if (pkgInfo.compatibility) {
+					if (!semver.satisfies(packageJson.version, pkgInfo.compatibility)) {
+						throw new Error(
+							'Current npack version "' + packageJson.version + '" ' +
+							'doesn\'t satisfy version required by package: "' +
+							pkgInfo.compatibility + '"'
+						)
+					}
+				}
 
 				if (!script) {
 					if (_(pkgInfo.scripts).isEmpty()) {

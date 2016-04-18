@@ -43,6 +43,7 @@
     "moment": "2.11.1",
     "multipipe": "0.3.0",
     "read": "1.0.7",
+    "semver": "5.1.0",
     "tar": "2.2.1",
     "twostep": "0.4.1",
     "underscore": "1.8.3"
