@@ -217,7 +217,7 @@ program.command('use <package>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['use']
 						),
-						env: options.env
+						env: config.env
 					})
 					.value();
 
@@ -266,7 +266,7 @@ program.command('uninstall <package>')
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['uninstall']
 						),
-						env: options.env
+						env: config.env
 					})
 					.value();
 
