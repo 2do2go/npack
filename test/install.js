@@ -242,4 +242,64 @@ describe('.install()', function() {
 			);
 		});
 	});
+
+	describe('with package compatibility', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should fail when package version is not satisfied', function(done) {
+			var originalVersion = npack.version;
+			Steppy(
+				function() {
+					// set incompatible version
+					npack.version = '2.0.0';
+
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'compatibility.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err) {
+					// restore original version
+					npack.version = originalVersion;
+
+					helpers.checkError(
+						err,
+						'Current npack version "2.0.0" doesn\'t satisfy ' +
+						'version required by package: "1.x.x"'
+					);
+					done();
+				}
+			);
+		});
+
+		it('should be ok when package version is satisfied', function(done) {
+			var originalVersion = npack.version;
+			Steppy(
+				function() {
+					// set compatible version
+					npack.version = '1.0.0';
+
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'compatibility.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				function(err) {
+					// restore original version
+					npack.version = originalVersion;
+
+					done(err);
+				}
+			);
+		});
+	});
 });

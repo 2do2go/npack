@@ -5,6 +5,7 @@ var fse = require('fs-extra');
 var path = require('path');
 var helpers = require('./helpers');
 var npack = require('../lib/npack');
+var expect = require('expect.js');
 
 describe('.uninstall()', function() {
 	describe('should return an error', function() {
@@ -188,6 +189,93 @@ describe('.uninstall()', function() {
 					helpers.checkDisabledHookResult('postuninstall', this.slot());
 				},
 				done
+			);
+		});
+	});
+
+	describe('with package compatibility', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should fail when package version is not satisfied', function(done) {
+			var originalVersion = npack.version,
+				installed;
+			Steppy(
+				function() {
+					// set compatible version
+					npack.version = '1.0.0';
+
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'compatibility.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					this.pass(pkgInfo);
+
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				function(err, pkgInfo) {
+					installed = true;
+
+					// set incompatible version
+					npack.version = '2.0.0';
+
+					npack.uninstall({
+						name: pkgInfo.name,
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err) {
+					// restore original version
+					npack.version = originalVersion;
+
+					expect(installed).equal(true);
+
+					helpers.checkError(
+						err,
+						'Current npack version "2.0.0" doesn\'t satisfy ' +
+						'version required by package: "1.x.x"'
+					);
+					done();
+				}
+			);
+		});
+
+		it('should be ok when package version is satisfied', function(done) {
+			var originalVersion = npack.version;
+			Steppy(
+				function() {
+					// set compatible version
+					npack.version = '1.0.0';
+
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'compatibility.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					this.pass(pkgInfo);
+
+					npack.uninstall({
+						name: pkgInfo.name,
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, false, this.slot());
+				},
+				function(err) {
+					// restore original version
+					npack.version = originalVersion;
+
+					done(err);
+				}
 			);
 		});
 	});
