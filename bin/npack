@@ -70,6 +70,9 @@ program.command('install <source>')
 					path: options.config,
 					log: options.log
 				}, this.slot());
+			},
+			function(err, config) {
+				this.pass(config);
 
 				if (options.user && options.user.indexOf(':') === -1) {
 					read({
