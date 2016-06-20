@@ -326,7 +326,7 @@ program.command('run [script]')
 							'Current npack version "' + npack.version + '" ' +
 							'doesn\'t satisfy version required by package: "' +
 							pkgInfo.compatibility + '"'
-						)
+						);
 					}
 				}
 
