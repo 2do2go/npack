@@ -38,6 +38,16 @@ var parseDisabledHooks = function(disableHooks, commands) {
 	}
 };
 
+var createErrorHandler = function(options) {
+	return function(err) {
+		if (err) {
+			logger.logError(err, options);
+
+			process.exit(1);
+		}
+	};
+};
+
 var defaultConfigPath = path.join(process.cwd(), '.npackrc');
 
 program.command('install <source>')
@@ -110,7 +120,7 @@ program.command('install <source>')
 
 				this.pass(null);
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
@@ -127,7 +137,7 @@ var list = function(options) {
 
 			this.pass(null);
 		},
-		logger.createErrorLogger(options)
+		createErrorHandler(options)
 	);
 };
 
@@ -162,7 +172,7 @@ program.command('current')
 
 				this.pass(null);
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
@@ -185,7 +195,7 @@ program.command('info <package>')
 
 				this.pass(null);
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
@@ -232,7 +242,7 @@ program.command('use <package>')
 
 				this.pass(null);
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
@@ -275,7 +285,7 @@ program.command('uninstall <package>')
 
 				npack.uninstall(uninstallOptions, this.slot());
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
@@ -294,7 +304,7 @@ program.command('clean')
 
 				npack.clean(cleanOptions, this.slot());
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
@@ -354,14 +364,14 @@ program.command('run [script]')
 					throw new Error('Unknown script "' + script + '"');
 				}
 			},
-			logger.createErrorLogger(options)
+			createErrorHandler(options)
 		);
 	});
 
 program
 	.command('*')
 	.action(function(name) {
-		logger.createErrorLogger({})(new Error('Unknown command "' + name + '"'));
+		createErrorHandler({})(new Error('Unknown command "' + name + '"'));
 	});
 
 program.parse(process.argv);
