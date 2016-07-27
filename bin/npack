@@ -188,8 +188,6 @@ program.command('info <package>')
 				}, this.slot());
 			},
 			function(err, pkgInfo) {
-				if (!pkgInfo) throw new Error('Package "' + name + '" is not found');
-
 				logger.log('Package info:');
 				logger.writePkgInfo(pkgInfo, {markCurrent: true});
 
