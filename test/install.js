@@ -80,6 +80,36 @@ describe('.install()', function() {
 			);
 		});
 
+		it('should be ok with local tar.gz symlink source', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple-symlink.tar.gz'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should be ok with local folder symlink source', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple-symlink'),
+						dir: helpers.tempDir
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
 		it('should be ok with remote tar.gz source', function(done) {
 			Steppy(
 				function() {
