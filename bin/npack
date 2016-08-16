@@ -177,7 +177,7 @@ program.command('current')
 	});
 
 program.command('info <package>')
-	.description('Print info about intalled package')
+	.description('Print info about installed package')
 	.option('--trace', 'Show stack trace on error')
 	.action(function(name, options) {
 		Steppy(
