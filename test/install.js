@@ -8,7 +8,11 @@ var staticServer = require('./staticServer');
 var npack = require('../lib/npack');
 var expect = require('expect.js');
 
-describe('.install()', function() {
+var nodeMajor = Number(process.versions.node.split('.')[0]);
+
+var describeOrSkip = nodeMajor > 6 ? describe.skip : describe;
+
+describeOrSkip('.install()', function() {
 	describe('should return an error', function() {
 		it('if required option `src` is not set', function(done) {
 			npack.install({}, function(err) {
