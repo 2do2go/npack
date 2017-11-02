@@ -1,8 +1,10 @@
 
 language: node_js
 
+before_install:
+  - if [[ `npm -v` = 5* ]] && [[ `node -v` = v8* ]]; then npm install -g npm@4; fi
+
 node_js:
-  - "stable"
   - "8"
   - "6"
   - "4"
