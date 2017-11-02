@@ -6,6 +6,7 @@ var path = require('path');
 var helpers = require('./helpers');
 var staticServer = require('./staticServer');
 var npack = require('../lib/npack');
+var expect = require('expect.js');
 
 describe('.install()', function() {
 	describe('should return an error', function() {
@@ -25,9 +26,9 @@ describe('.install()', function() {
 
 		it('if source does not exist', function(done) {
 			var src = path.join(helpers.fixturesDir, 'unknown.tar.gz');
-
 			npack.install({src: src, dir: helpers.tempDir}, function(err) {
-				helpers.checkError(err, 'Local source "' + src + '" does not exist');
+				expect(err).ok();
+				expect(err.message).contain('ENOENT');
 				done();
 			});
 		});
