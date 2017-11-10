@@ -7,24 +7,24 @@ var helpers = require('./helpers');
 var npack = require('../lib/npack');
 var expect = require('expect.js');
 
-describe('.resolveName()', function() {
+describe('.resolverTargetPackage()', function() {
 	describe('should return an error', function() {
 		it('if required option `target` is not set', function(done) {
-			npack.resolveName({dir: '.'}, function(err) {
+			npack.resolverTargetPackage({dir: '.'}, function(err) {
 				helpers.checkError(err, 'Option "target" is required');
 				done();
 			});
 		});
 
 		it('if required option `dir` is not set', function(done) {
-			npack.resolveName({target: 'a'}, function(err) {
+			npack.resolverTargetPackage({target: 'a'}, function(err) {
 				helpers.checkError(err, 'Option "dir" is required');
 				done();
 			});
 		});
 	});
 
-	describe('switching between installed packages', function() {
+	describe('resolving given target to package name', function() {
 		beforeEach(function(done) {
 			fse.emptyDir(helpers.tempDir, done);
 		});
@@ -44,7 +44,7 @@ describe('.resolveName()', function() {
 				function(err, pkgInfo) {
 					this.pass(pkgInfo);
 
-					npack.resolveName({
+					npack.resolverTargetPackage({
 						target: pkgInfo.name,
 						dir: helpers.tempDir
 					}, this.slot());
@@ -67,7 +67,7 @@ describe('.resolveName()', function() {
 				function(err, pkgInfo) {
 					this.pass(pkgInfo);
 
-					npack.resolveName({
+					npack.resolverTargetPackage({
 						target: '0',
 						dir: helpers.tempDir
 					}, this.slot());
@@ -88,7 +88,7 @@ describe('.resolveName()', function() {
 					}, this.slot());
 				},
 				function() {
-					npack.resolveName({
+					npack.resolverTargetPackage({
 						target: '1',
 						dir: helpers.tempDir
 					}, this.slot());
@@ -105,7 +105,7 @@ describe('.resolveName()', function() {
 		it('should fail if package not installed', function(done) {
 			Steppy(
 				function() {
-					npack.resolveName({
+					npack.resolverTargetPackage({
 						target: 'unknown',
 						dir: helpers.tempDir
 					}, this.slot());

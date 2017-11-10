@@ -184,7 +184,7 @@ program.command('info <package>')
 
 		Steppy(
 			function() {
-				npack.resolveName({
+				npack.resolverTargetPackage({
 					target: target,
 					dir: dir
 				}, this.slot());
@@ -223,7 +223,7 @@ program.command('use <package>')
 
 		Steppy(
 			function() {
-				npack.resolveName({
+				npack.resolverTargetPackage({
 					target: target,
 					dir: dir
 				}, this.slot());
@@ -279,7 +279,7 @@ program.command('uninstall <package>')
 
 		Steppy(
 			function() {
-				npack.resolveName({
+				npack.resolverTargetPackage({
 					target: target,
 					dir: dir
 				}, this.slot());
