@@ -179,12 +179,20 @@ program.command('current')
 program.command('info <package>')
 	.description('Print info about installed package')
 	.option('--trace', 'Show stack trace on error')
-	.action(function(name, options) {
+	.action(function(target, options) {
+		var dir = process.cwd();
+
 		Steppy(
 			function() {
+				npack.resolveTargetPackage({
+					target: target,
+					dir: dir
+				}, this.slot());
+			},
+			function(err, name) {
 				npack.getInfo({
 					name: name,
-					dir: process.cwd()
+					dir: dir
 				}, this.slot());
 			},
 			function(err, pkgInfo) {
@@ -210,21 +218,28 @@ program.command('use <package>')
 		'Config file to use (default is .npackrc from cwd)',
 		defaultConfigPath
 	)
-	.action(function(name, options) {
+	.action(function(target, options) {
+		var dir = process.cwd();
+
 		Steppy(
 			function() {
+				npack.resolveTargetPackage({
+					target: target,
+					dir: dir
+				}, this.slot());
+
 				npack.loadConfig({
 					path: options.config,
 					log: options.log
 				}, this.slot());
 			},
-			function(err, config) {
+			function(err, name, config) {
 				var useOptions = _(options)
 					.chain()
 					.pick('log')
 					.extend({
 						name: name,
-						dir: process.cwd(),
+						dir: dir,
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['use']
 						),
@@ -259,21 +274,28 @@ program.command('uninstall <package>')
 		'Config file to use (default is .npackrc from cwd)',
 		defaultConfigPath
 	)
-	.action(function(name, options) {
+	.action(function(target, options) {
+		var dir = process.cwd();
+
 		Steppy(
 			function() {
+				npack.resolveTargetPackage({
+					target: target,
+					dir: dir
+				}, this.slot());
+
 				npack.loadConfig({
 					path: options.config,
 					log: options.log
 				}, this.slot());
 			},
-			function(err, config) {
+			function(err, name, config) {
 				var uninstallOptions = _(options)
 					.chain()
 					.pick('log')
 					.extend({
 						name: name,
-						dir: process.cwd(),
+						dir: dir,
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['uninstall']
 						),
