@@ -55,7 +55,7 @@ program.command('install <source>')
 	.description('Install new package version')
 	.option(
 		'-u, --user <USER[:PASSWORD]>',
-		'User for basic authentication, PASSWORD will be promted if omitted'
+		'User for basic authentication, PASSWORD will be prompted if omitted'
 	)
 	.option(
 		'-f, --force',
