@@ -7,17 +7,17 @@ var helpers = require('./helpers');
 var npack = require('../lib/npack');
 var expect = require('expect.js');
 
-describe('.resolverTargetPackage()', function() {
+describe('.resolveTargetPackage()', function() {
 	describe('should return an error', function() {
 		it('if required option `target` is not set', function(done) {
-			npack.resolverTargetPackage({dir: '.'}, function(err) {
+			npack.resolveTargetPackage({dir: '.'}, function(err) {
 				helpers.checkError(err, 'Option "target" is required');
 				done();
 			});
 		});
 
 		it('if required option `dir` is not set', function(done) {
-			npack.resolverTargetPackage({target: 'a'}, function(err) {
+			npack.resolveTargetPackage({target: 'a'}, function(err) {
 				helpers.checkError(err, 'Option "dir" is required');
 				done();
 			});
@@ -44,7 +44,7 @@ describe('.resolverTargetPackage()', function() {
 				function(err, pkgInfo) {
 					this.pass(pkgInfo);
 
-					npack.resolverTargetPackage({
+					npack.resolveTargetPackage({
 						target: pkgInfo.name,
 						dir: helpers.tempDir
 					}, this.slot());
@@ -67,7 +67,7 @@ describe('.resolverTargetPackage()', function() {
 				function(err, pkgInfo) {
 					this.pass(pkgInfo);
 
-					npack.resolverTargetPackage({
+					npack.resolveTargetPackage({
 						target: '0',
 						dir: helpers.tempDir
 					}, this.slot());
@@ -88,7 +88,7 @@ describe('.resolverTargetPackage()', function() {
 					}, this.slot());
 				},
 				function() {
-					npack.resolverTargetPackage({
+					npack.resolveTargetPackage({
 						target: '1',
 						dir: helpers.tempDir
 					}, this.slot());
@@ -105,7 +105,7 @@ describe('.resolverTargetPackage()', function() {
 		it('should fail if package not installed', function(done) {
 			Steppy(
 				function() {
-					npack.resolverTargetPackage({
+					npack.resolveTargetPackage({
 						target: 'unknown',
 						dir: helpers.tempDir
 					}, this.slot());
