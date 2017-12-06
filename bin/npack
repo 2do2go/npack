@@ -48,7 +48,8 @@ var createErrorHandler = function(options) {
 	};
 };
 
-var defaultConfigPath = path.join(process.cwd(), '.npackrc');
+var defaultDirPath = process.cwd();
+var defaultConfigPath = path.join(defaultDirPath, '.npackrc');
 
 program.command('install <source>')
 	.alias('i')
@@ -73,6 +74,11 @@ program.command('install <source>')
 		'Config file to use (default is .npackrc from cwd)',
 		defaultConfigPath
 	)
+	.option(
+		'--dir <path>',
+		'Directory where package will be installed (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(src, options) {
 		Steppy(
 			function() {
@@ -96,10 +102,9 @@ program.command('install <source>')
 			function(err, config, password) {
 				var installOptions = _(options)
 					.chain()
-					.pick('force', 'log', 'use')
+					.pick('force', 'log', 'use', 'dir')
 					.extend({
 						src: src,
-						dir: process.cwd(),
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['install', 'use']
 						),
@@ -127,7 +132,10 @@ program.command('install <source>')
 var list = function(options) {
 	Steppy(
 		function() {
-			npack.getList({dir: process.cwd()}, this.slot());
+			npack.getList(
+				_(options).pick('dir'),
+				this.slot()
+			);
 		},
 		function(err, pkgInfos) {
 			if (!pkgInfos.length) throw new Error('Installed packages are not found');
@@ -146,11 +154,21 @@ program.command('list')
 	.description('Print list of installed packages')
 	.option('-i, --info', 'Show extended info about each package')
 	.option('--trace', 'Show stack trace on error')
+	.option(
+		'--dir <path>',
+		'Directory where packages will shown (default is current directory)',
+		defaultDirPath
+	)
 	.action(list);
 
 program.command('ll')
 	.description('Print list with extended info, alias for "ls -i"')
 	.option('--trace', 'Show stack trace on error')
+	.option(
+		'--dir <path>',
+		'Directory where packages will shown (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(options) {
 		list(_({info: true}).extend(options));
 	});
@@ -159,10 +177,18 @@ program.command('current')
 	.alias('cur')
 	.description('Print info about current package')
 	.option('--trace', 'Show stack trace on error')
+	.option(
+		'--dir <path>',
+		'Directory where packages will shown (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(options) {
 		Steppy(
 			function() {
-				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
+				npack.getCurrentInfo(
+					_(options).pick('dir'),
+					this.slot()
+				);
 			},
 			function(err, pkgInfo) {
 				if (!pkgInfo) throw new Error('Current package is not set');
@@ -179,20 +205,23 @@ program.command('current')
 program.command('info <package>')
 	.description('Print info about installed package')
 	.option('--trace', 'Show stack trace on error')
+	.option(
+		'--dir <path>',
+		'Packages directory (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(target, options) {
-		var dir = process.cwd();
-
 		Steppy(
 			function() {
 				npack.resolveTargetPackage({
 					target: target,
-					dir: dir
+					dir: options.dir
 				}, this.slot());
 			},
 			function(err, name) {
 				npack.getInfo({
 					name: name,
-					dir: dir
+					dir: options.dir
 				}, this.slot());
 			},
 			function(err, pkgInfo) {
@@ -218,14 +247,17 @@ program.command('use <package>')
 		'Config file to use (default is .npackrc from cwd)',
 		defaultConfigPath
 	)
+	.option(
+		'--dir <path>',
+		'Packages directory (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(target, options) {
-		var dir = process.cwd();
-
 		Steppy(
 			function() {
 				npack.resolveTargetPackage({
 					target: target,
-					dir: dir
+					dir: options.dir
 				}, this.slot());
 
 				npack.loadConfig({
@@ -239,7 +271,7 @@ program.command('use <package>')
 					.pick('log')
 					.extend({
 						name: name,
-						dir: dir,
+						dir: options.dir,
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['use']
 						),
@@ -274,14 +306,17 @@ program.command('uninstall <package>')
 		'Config file to use (default is .npackrc from cwd)',
 		defaultConfigPath
 	)
+	.option(
+		'--dir <path>',
+		'Packages directory (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(target, options) {
-		var dir = process.cwd();
-
 		Steppy(
 			function() {
 				npack.resolveTargetPackage({
 					target: target,
-					dir: dir
+					dir: options.dir
 				}, this.slot());
 
 				npack.loadConfig({
@@ -295,7 +330,7 @@ program.command('uninstall <package>')
 					.pick('log')
 					.extend({
 						name: name,
-						dir: dir,
+						dir: options.dir,
 						disabledHooks: parseDisabledHooks(
 							options.disableHooks, ['uninstall']
 						),
@@ -313,16 +348,18 @@ program.command('clean')
 	.description('Uninstall all packages except current')
 	.option('-L, --no-log', 'Disable detailed log')
 	.option('--trace', 'Show stack trace on error')
+	.option(
+		'--dir <path>',
+		'Packages directory (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(options) {
 		Steppy(
 			function() {
-				var cleanOptions = _(options)
-					.chain()
-					.pick('log')
-					.extend({dir: process.cwd()})
-					.value();
-
-				npack.clean(cleanOptions, this.slot());
+				npack.clean(
+					_(options).pick('log', 'dir'),
+					this.slot()
+				);
 			},
 			createErrorHandler(options)
 		);
@@ -337,6 +374,11 @@ program.command('run [script]')
 		'Config file to use (default is .npackrc from cwd)',
 		defaultConfigPath
 	)
+	.option(
+		'--dir <path>',
+		'Packages directory (default is current directory)',
+		defaultDirPath
+	)
 	.action(function(script, options) {
 		Steppy(
 			function() {
@@ -345,7 +387,10 @@ program.command('run [script]')
 					log: options.log
 				}, this.slot());
 
-				npack.getCurrentInfo({dir: process.cwd()}, this.slot());
+				npack.getCurrentInfo(
+					_(options).pick('dir'),
+					this.slot()
+				);
 			},
 			function(err, config, pkgInfo) {
 				if (!pkgInfo) throw new Error('Current package is not set');
@@ -376,7 +421,7 @@ program.command('run [script]')
 
 					processUtils.execScript('npm run --silent ' + script, {
 						cwd: pkgInfo.path,
-						dir: process.cwd(),
+						dir: options.dir,
 						log: options.log,
 						env: config.env
 					}, this.slot());
