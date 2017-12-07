@@ -7,7 +7,6 @@ var program = require('commander'),
 	_ = require('underscore'),
 	Steppy = require('twostep').Steppy,
 	read = require('read'),
-	fsUtils = require('../lib/utils/fs'),
 	processUtils = require('../lib/utils/process'),
 	logger = require('../lib/utils/logger'),
 	path = require('path'),
@@ -49,6 +48,10 @@ var createErrorHandler = function(options) {
 	};
 };
 
+var resolveDirPath = function(dirPath) {
+	return path.resolve(process.cwd(), dirPath);
+};
+
 var defaultDirPath = process.cwd();
 var defaultConfigPath = path.join(defaultDirPath, '.npackrc');
 
@@ -78,7 +81,7 @@ program.command('install <source>')
 	.option(
 		'--dir <path>',
 		'Directory where package will be installed (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(src, options) {
@@ -159,7 +162,7 @@ program.command('list')
 	.option(
 		'--dir <path>',
 		'Directory where packages will shown (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(list);
@@ -170,7 +173,7 @@ program.command('ll')
 	.option(
 		'--dir <path>',
 		'Directory where packages will shown (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(options) {
@@ -184,7 +187,7 @@ program.command('current')
 	.option(
 		'--dir <path>',
 		'Directory where packages will shown (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(options) {
@@ -213,7 +216,7 @@ program.command('info <package>')
 	.option(
 		'--dir <path>',
 		'Packages directory (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(target, options) {
@@ -256,7 +259,7 @@ program.command('use <package>')
 	.option(
 		'--dir <path>',
 		'Packages directory (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(target, options) {
@@ -316,7 +319,7 @@ program.command('uninstall <package>')
 	.option(
 		'--dir <path>',
 		'Packages directory (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(target, options) {
@@ -359,7 +362,7 @@ program.command('clean')
 	.option(
 		'--dir <path>',
 		'Packages directory (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(options) {
@@ -386,7 +389,7 @@ program.command('run [script]')
 	.option(
 		'--dir <path>',
 		'Packages directory (default is current directory)',
-		fsUtils.absolutizeDirPath,
+		resolveDirPath,
 		defaultDirPath
 	)
 	.action(function(script, options) {
