@@ -161,7 +161,7 @@ program.command('list')
 	.option('--trace', 'Show stack trace on error')
 	.option(
 		'--dir <path>',
-		'Directory where packages will shown (default is current directory)',
+		'Packages directory (default is current directory)',
 		resolveDirPath,
 		defaultDirPath
 	)
@@ -172,7 +172,7 @@ program.command('ll')
 	.option('--trace', 'Show stack trace on error')
 	.option(
 		'--dir <path>',
-		'Directory where packages will shown (default is current directory)',
+		'Packages directory (default is current directory)',
 		resolveDirPath,
 		defaultDirPath
 	)
@@ -186,7 +186,7 @@ program.command('current')
 	.option('--trace', 'Show stack trace on error')
 	.option(
 		'--dir <path>',
-		'Directory where packages will shown (default is current directory)',
+		'Packages directory (default is current directory)',
 		resolveDirPath,
 		defaultDirPath
 	)
