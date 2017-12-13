@@ -2,7 +2,6 @@
 language: node_js
 
 before_install:
-  - if [[ `npm -v` = 5* ]] && [[ `node -v` = v8* ]]; then npm install -g npm@4; fi
   - if [[ `npm -v` = 5* ]]; then npm install -g npm@5.6.0; fi
 
 node_js:
