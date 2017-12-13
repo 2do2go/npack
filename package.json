@@ -39,7 +39,7 @@
   "dependencies": {
     "colors": "1.1.2",
     "commander": "2.9.0",
-    "fs-extra": "0.26.4",
+    "fs-extra": "4.0.2",
     "moment": "2.11.2",
     "multipipe": "0.3.0",
     "read": "1.0.7",
