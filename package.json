@@ -1,6 +1,6 @@
 {
   "name": "npack",
-  "version": "2.1.0",
+  "version": "2.2.1",
   "description": "Node.js packages manipulation scripts",
   "keywords": [
     "package",
@@ -32,6 +32,7 @@
   "devDependencies": {
     "chai": "3.5.0",
     "expect.js": "0.3.1",
+    "jshint": "2.4.4",
     "mocha": "2.4.5",
     "node-static": "0.7.10"
   },
@@ -39,8 +40,7 @@
     "colors": "1.1.2",
     "commander": "2.9.0",
     "fs-extra": "4.0.2",
-    "jshint": "2.4.4",
-    "moment": "2.11.1",
+    "moment": "2.11.2",
     "multipipe": "0.3.0",
     "read": "1.0.7",
     "semver": "5.1.0",
