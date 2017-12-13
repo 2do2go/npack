@@ -87,6 +87,11 @@ program.command('install <source>')
 	.action(function(src, options) {
 		Steppy(
 			function() {
+				npack.checkDirExistance({
+					dir: options.dir
+				}, this.slot());
+			},
+			function() {
 				npack.loadConfig({
 					path: options.config,
 					log: options.log
@@ -136,6 +141,11 @@ program.command('install <source>')
 
 var list = function(options) {
 	Steppy(
+		function() {
+			npack.checkDirExistance({
+				dir: options.dir
+			}, this.slot());
+		},
 		function() {
 			npack.getList(
 				_(options).pick('dir'),
@@ -222,6 +232,11 @@ program.command('info <package>')
 	.action(function(target, options) {
 		Steppy(
 			function() {
+				npack.checkDirExistance({
+					dir: options.dir
+				}, this.slot());
+			},
+			function() {
 				npack.resolveTargetPackage({
 					target: target,
 					dir: options.dir
@@ -264,6 +279,11 @@ program.command('use <package>')
 	)
 	.action(function(target, options) {
 		Steppy(
+			function() {
+				npack.checkDirExistance({
+					dir: options.dir
+				}, this.slot());
+			},
 			function() {
 				npack.resolveTargetPackage({
 					target: target,
@@ -325,6 +345,11 @@ program.command('uninstall <package>')
 	.action(function(target, options) {
 		Steppy(
 			function() {
+				npack.checkDirExistance({
+					dir: options.dir
+				}, this.slot());
+			},
+			function() {
 				npack.resolveTargetPackage({
 					target: target,
 					dir: options.dir
@@ -368,6 +393,11 @@ program.command('clean')
 	.action(function(options) {
 		Steppy(
 			function() {
+				npack.checkDirExistance({
+					dir: options.dir
+				}, this.slot());
+			},
+			function() {
 				npack.clean(
 					_(options).pick('log', 'dir'),
 					this.slot()
@@ -394,6 +424,11 @@ program.command('run [script]')
 	)
 	.action(function(script, options) {
 		Steppy(
+			function() {
+				npack.checkDirExistance({
+					dir: options.dir
+				}, this.slot());
+			},
 			function() {
 				npack.loadConfig({
 					path: options.config,
