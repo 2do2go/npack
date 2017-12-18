@@ -9,6 +9,7 @@ var program = require('commander'),
 	read = require('read'),
 	processUtils = require('../lib/utils/process'),
 	logger = require('../lib/utils/logger'),
+	fsUtils = require('../lib/utils/fs'),
 	path = require('path'),
 	semver = require('semver');
 
@@ -87,7 +88,7 @@ program.command('install <source>')
 	.action(function(src, options) {
 		Steppy(
 			function() {
-				npack.checkDirExists({
+				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());
 			},
@@ -142,7 +143,7 @@ program.command('install <source>')
 var list = function(options) {
 	Steppy(
 		function() {
-			npack.checkDirExists({
+			fsUtils.checkDirExists({
 				dir: options.dir
 			}, this.slot());
 		},
@@ -232,7 +233,7 @@ program.command('info <package>')
 	.action(function(target, options) {
 		Steppy(
 			function() {
-				npack.checkDirExists({
+				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());
 			},
@@ -280,7 +281,7 @@ program.command('use <package>')
 	.action(function(target, options) {
 		Steppy(
 			function() {
-				npack.checkDirExists({
+				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());
 			},
@@ -345,7 +346,7 @@ program.command('uninstall <package>')
 	.action(function(target, options) {
 		Steppy(
 			function() {
-				npack.checkDirExists({
+				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());
 			},
@@ -393,7 +394,7 @@ program.command('clean')
 	.action(function(options) {
 		Steppy(
 			function() {
-				npack.checkDirExists({
+				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());
 			},
@@ -425,7 +426,7 @@ program.command('run [script]')
 	.action(function(script, options) {
 		Steppy(
 			function() {
-				npack.checkDirExists({
+				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());
 			},
