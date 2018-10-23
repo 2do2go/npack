@@ -333,4 +333,47 @@ describe('.install()', function() {
 			);
 		});
 	});
+
+	describe('with useLockfile option', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should be ok with lockfile in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'lockfile.tar.gz'),
+						dir: helpers.tempDir,
+						useLockfile: true
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should fail without lockfile in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						useLockfile: true
+					}, this.slot());
+				},
+				function(err) {
+					helpers.checkError(err, 'Lockfile is not found');
+
+					done();
+				}
+			);
+		});
+	});
 });

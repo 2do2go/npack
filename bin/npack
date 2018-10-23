@@ -67,6 +67,10 @@ program.command('install <source>')
 		'-f, --force',
 		'Install package even if such version is already installed'
 	)
+	.option(
+		'--use-lockfile',
+		'Use lockfile to install package dependencies with `npm ci` command'
+	)
 	.option('-U, --no-use', 'Prevent switching to new package')
 	.option('-L, --no-log', 'Disable detailed log')
 	.option('--trace', 'Show stack trace on error')
@@ -113,7 +117,7 @@ program.command('install <source>')
 			function(err, config, password) {
 				var installOptions = _(options)
 					.chain()
-					.pick('force', 'log', 'use', 'dir')
+					.pick('force', 'log', 'use', 'dir', 'useLockfile')
 					.extend({
 						src: src,
 						disabledHooks: parseDisabledHooks(
