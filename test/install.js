@@ -57,8 +57,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err, pkgInfo) {
@@ -73,8 +72,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'simple'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err, pkgInfo) {
@@ -89,8 +87,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'simple-symlink.tar.gz'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err, pkgInfo) {
@@ -105,8 +102,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'simple-symlink'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err, pkgInfo) {
@@ -121,8 +117,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: staticServer.baseUrl + 'simple.tar.gz',
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err, pkgInfo) {
@@ -139,15 +134,13 @@ describe('.install()', function() {
 					function() {
 						npack.install({
 							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
-							dir: helpers.tempDir,
-							syncMode: 'install'
+							dir: helpers.tempDir
 						}, this.slot());
 					},
 					function() {
 						npack.install({
 							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
-							dir: helpers.tempDir,
-							syncMode: 'install'
+							dir: helpers.tempDir
 						}, this.slot());
 					},
 					function(err) {
@@ -168,8 +161,7 @@ describe('.install()', function() {
 					function() {
 						npack.install({
 							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
-							dir: helpers.tempDir,
-							syncMode: 'install'
+							dir: helpers.tempDir
 						}, this.slot());
 					},
 					function(err, pkgInfo) {
@@ -179,7 +171,6 @@ describe('.install()', function() {
 						npack.install({
 							src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
 							dir: helpers.tempDir,
-							syncMode: 'install',
 							force: true
 						}, this.slot());
 					},
@@ -195,7 +186,7 @@ describe('.install()', function() {
 	// run this tests only in node with npm version containing `ci` command
 	var describeSyncByCi = semver.gte(process.versions.node, '8.12.0') ?
 		describe : describe.skip;
-	describeSyncByCi('with ci sync type', function() {
+	describeSyncByCi('with ci sync mode', function() {
 		beforeEach(function(done) {
 			fse.emptyDir(helpers.tempDir, done);
 		});
@@ -265,8 +256,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'preinstall-success.tar.gz'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function() {
@@ -282,8 +272,7 @@ describe('.install()', function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'preinstall-success.tar.gz'),
 						dir: helpers.tempDir,
-						disabledHooks: ['preinstall'],
-						syncMode: 'install'
+						disabledHooks: ['preinstall']
 					}, this.slot());
 				},
 				function() {
@@ -296,8 +285,7 @@ describe('.install()', function() {
 		it('should return error if `postinstall` hook fails', function(done) {
 			npack.install({
 				src: path.join(helpers.fixturesDir, 'postinstall-fail.tar.gz'),
-				dir: helpers.tempDir,
-				syncMode: 'install'
+				dir: helpers.tempDir
 			}, function(err) {
 				helpers.checkError(err, 'Command "exit 1" failed with exit code: 1');
 				done();
@@ -309,8 +297,7 @@ describe('.install()', function() {
 				function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'postinstall-success.tar.gz'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function() {
@@ -326,8 +313,7 @@ describe('.install()', function() {
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'postinstall-success.tar.gz'),
 						dir: helpers.tempDir,
-						disabledHooks: ['postinstall'],
-						syncMode: 'install'
+						disabledHooks: ['postinstall']
 					}, this.slot());
 				},
 				function() {
@@ -356,8 +342,7 @@ describe('.install()', function() {
 
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'compatibility.tar.gz'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err) {
@@ -383,8 +368,7 @@ describe('.install()', function() {
 
 					npack.install({
 						src: path.join(helpers.fixturesDir, 'compatibility.tar.gz'),
-						dir: helpers.tempDir,
-						syncMode: 'install'
+						dir: helpers.tempDir
 					}, this.slot());
 				},
 				function(err, pkgInfo) {
