@@ -7,6 +7,7 @@ var helpers = require('./helpers');
 var staticServer = require('./staticServer');
 var npack = require('../lib/npack');
 var expect = require('expect.js');
+var semver = require('semver');
 
 describe('.install()', function() {
 	describe('should return an error', function() {
@@ -180,6 +181,76 @@ describe('.install()', function() {
 				);
 			}
 		);
+
+		it('should fail with invalid syncMode option', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'invalidSyncMode'
+					}, this.slot());
+				},
+				function(err) {
+					helpers.checkError(
+						err,
+						'Expect sync mode "invalidSyncMode" to be ' +
+						'one of "install", "ci"'
+					);
+
+					done();
+				}
+			);
+		});
+	});
+
+	// run this tests only in node with npm version containing `ci` command
+	var describeSyncByCi = semver.gte(process.versions.node, '8.12.0') ?
+		describe : describe.skip;
+	describeSyncByCi('with ci sync mode', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should be ok with shrinkwrap in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'shrinkwrap.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'ci'
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should fail without shrinkwrap in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'ci'
+					}, this.slot());
+				},
+				function(err) {
+					helpers.checkError(
+						err,
+						'npm-shrinkwrap.json file is not found'
+					);
+
+					done();
+				}
+			);
+		});
 	});
 
 	describe('hooks', function() {

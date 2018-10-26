@@ -67,6 +67,13 @@ program.command('install <source>')
 		'-f, --force',
 		'Install package even if such version is already installed'
 	)
+	.option(
+		'--sync-mode <mode>',
+		'Defines how to sync package dependencies. Can be `install` (sync with' +
+		'npm `install` and `prune` commands) or `ci` (sync with npm `ci` ' +
+		'command, npm v5.7.0 or higher required). Default is `install`',
+		'install'
+	)
 	.option('-U, --no-use', 'Prevent switching to new package')
 	.option('-L, --no-log', 'Disable detailed log')
 	.option('--trace', 'Show stack trace on error')
@@ -113,7 +120,7 @@ program.command('install <source>')
 			function(err, config, password) {
 				var installOptions = _(options)
 					.chain()
-					.pick('force', 'log', 'use', 'dir')
+					.pick('force', 'log', 'use', 'dir', 'syncMode')
 					.extend({
 						src: src,
 						disabledHooks: parseDisabledHooks(

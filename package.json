@@ -16,7 +16,7 @@
     "npack": "./bin/npack"
   },
   "scripts": {
-    "test": "mocha --bail --reporter spec --timeout 10000",
+    "test": "mocha --bail --reporter spec --timeout 60000",
     "lint": "jshint ./"
   },
   "repository": {
