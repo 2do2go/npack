@@ -71,7 +71,7 @@ program.command('install <source>')
 		'--sync-mode <mode>',
 		'Defines how to sync package dependencies. Can be `install` (sync with' +
 		'npm `install` and `prune` commands) or `ci` (sync with npm `ci` ' +
-		'command). Default is `install`',
+		'command, npm v5.7.0 or higher required). Default is `install`',
 		'install'
 	)
 	.option('-U, --no-use', 'Prevent switching to new package')
@@ -95,13 +95,6 @@ program.command('install <source>')
 	.action(function(src, options) {
 		Steppy(
 			function() {
-				if (!_(['install', 'ci']).contains(options.syncMode)) {
-					throw new Error(
-						'Expect sync mode "' + options.syncMode + '" to be ' +
-						'one of "install" or "ci"'
-					);
-				}
-
 				fsUtils.checkDirExists({
 					dir: options.dir
 				}, this.slot());

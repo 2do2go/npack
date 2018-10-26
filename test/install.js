@@ -181,6 +181,27 @@ describe('.install()', function() {
 				);
 			}
 		);
+
+		it('should fail with invalid syncMode option', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'invalidSyncMode'
+					}, this.slot());
+				},
+				function(err) {
+					helpers.checkError(
+						err,
+						'Expect sync mode "invalidSyncMode" to be ' +
+						'one of "install", "ci"'
+					);
+
+					done();
+				}
+			);
+		});
 	});
 
 	// run this tests only in node with npm version containing `ci` command
