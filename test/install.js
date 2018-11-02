@@ -253,6 +253,48 @@ describe('.install()', function() {
 		});
 	});
 
+	describe.only('with preferCi sync mode', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should be ok with shrinkwrap in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'shrinkwrap.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'preferCi'
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should be ok without shrinkwrap in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'preferCi'
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+	});
+
 	describe('hooks', function() {
 		beforeEach(function(done) {
 			fse.emptyDir(helpers.tempDir, done);
