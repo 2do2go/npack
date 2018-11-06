@@ -195,7 +195,7 @@ describe('.install()', function() {
 					helpers.checkError(
 						err,
 						'Expect sync mode "invalidSyncMode" to be ' +
-						'one of "install", "ci"'
+						'one of "install", "ci", "preferCi"'
 					);
 
 					done();
@@ -249,6 +249,48 @@ describe('.install()', function() {
 
 					done();
 				}
+			);
+		});
+	});
+
+	describe('with preferCi sync mode', function() {
+		beforeEach(function(done) {
+			fse.emptyDir(helpers.tempDir, done);
+		});
+
+		afterEach(function(done) {
+			fse.remove(helpers.tempDir, done);
+		});
+
+		it('should be ok with shrinkwrap in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'shrinkwrap.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'preferCi'
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should be ok without shrinkwrap in package', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						syncMode: 'preferCi'
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
 			);
 		});
 	});
