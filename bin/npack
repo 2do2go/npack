@@ -69,9 +69,11 @@ program.command('install <source>')
 	)
 	.option(
 		'--sync-mode <mode>',
-		'Defines how to sync package dependencies. Can be `install` (sync with' +
-		'npm `install` and `prune` commands) or `ci` (sync with npm `ci` ' +
-		'command, npm v5.7.0 or higher required). Default is `install`',
+		'Defines how to sync package dependencies. Can be `install` (sync with ' +
+		'npm install and prune commands), `ci` (sync with npm ci ' +
+		'command, npm v5.7.0 or higher required) or `preferCi` (if npm ci ' +
+		'command is available and shrinkwrap file is presented then npm ci will ' +
+		'be used, otherwise npm install will be used). Default is `install`',
 		'install'
 	)
 	.option('-U, --no-use', 'Prevent switching to new package')
