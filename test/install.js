@@ -195,7 +195,7 @@ describe('.install()', function() {
 					helpers.checkError(
 						err,
 						'Expect sync mode "invalidSyncMode" to be ' +
-						'one of "install", "ci"'
+						'one of "install", "ci", "preferCi"'
 					);
 
 					done();
@@ -253,7 +253,7 @@ describe('.install()', function() {
 		});
 	});
 
-	describe.only('with preferCi sync mode', function() {
+	describe('with preferCi sync mode', function() {
 		beforeEach(function(done) {
 			fse.emptyDir(helpers.tempDir, done);
 		});
