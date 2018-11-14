@@ -447,7 +447,7 @@ describe('.install()', function() {
 		});
 	});
 
-	describe('with environment variables', function() {
+	describe('with option `env`', function() {
 		beforeEach(function(done) {
 			Steppy(
 				function() {

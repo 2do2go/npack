@@ -6,8 +6,7 @@ var Steppy = require('twostep').Steppy;
 var _ = require('underscore');
 var fsUtils = require('fs');
 var pathUtils = require('path');
-
-var tempFilePath = pathUtils.join(__dirname, 'npmCallHistory');
+var testHelpers = require('../../helpers');
 
 Steppy(
 	function() {
@@ -15,7 +14,7 @@ Steppy(
 		var args = _(process.argv).rest(2);
 
 		fsUtils.appendFile(
-			tempFilePath,
+			testHelpers.npmStubCallHistoryPath,
 			JSON.stringify(args) + '\n',
 			'utf-8',
 			this.slot()
