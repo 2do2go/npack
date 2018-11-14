@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var Steppy = require('twostep').Steppy;
+var _ = require('underscore');
+var fsUtils = require('fs');
+var pathUtils = require('path');
+
+var tempFilePath = pathUtils.join(__dirname, 'npmCallHistory');
+
+Steppy(
+	function() {
+		// remove node and npm stub paths
+		var args = _(process.argv).rest(2);
+
+		fsUtils.appendFile(
+			tempFilePath,
+			JSON.stringify(args) + '\n',
+			'utf-8',
+			this.slot()
+		);
+	},
+	function(err) {
+		if (err) {
+			console.error(err);
+
+			process.exit(1);
+		}
+	}
+);

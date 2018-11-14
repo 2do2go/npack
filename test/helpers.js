@@ -1,12 +1,18 @@
 'use strict';
 
+var Steppy = require('twostep').Steppy;
+var _ = require('underscore');
 var expect = require('expect.js');
 var fse = require('fs-extra');
-var Steppy = require('twostep').Steppy;
+var fsUtils = require('fs');
 var path = require('path');
 
 exports.fixturesDir = path.join(__dirname, 'fixtures');
 exports.tempDir = path.join(__dirname, 'temp');
+exports.npmStubDir = path.join(exports.fixturesDir, 'npmStub');
+exports.npmStubCallHistoryPath = path.join(
+	exports.npmStubDir, 'npmCallHistory'
+);
 
 exports.exists = function(filePath, callback) {
 	fse.exists(filePath, function(fileExists) {
@@ -88,6 +94,28 @@ exports.checkCurrentPkg = function(pkgInfo, callback) {
 			expect(path.relative(exports.tempDir, pkgInfo.path)).to.be(pkgPath);
 
 			this.pass(null);
+		},
+		callback
+	);
+};
+
+exports.getNpmCallHistory = function(callback) {
+	Steppy(
+		function() {
+			fsUtils.readFile(
+				exports.npmStubCallHistoryPath, 'utf-8', this.slot()
+			);
+		},
+		function(err, npmCallHistoryText) {
+			var npmCallHistory = _(npmCallHistoryText.split('\n'))
+				.chain()
+				.filter(_.identity)
+				.map(function(npmCallArgsString) {
+					return JSON.parse(npmCallArgsString);
+				})
+				.value();
+
+			this.pass(npmCallHistory);
 		},
 		callback
 	);
