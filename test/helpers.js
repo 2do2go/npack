@@ -4,7 +4,7 @@ var Steppy = require('twostep').Steppy;
 var _ = require('underscore');
 var expect = require('expect.js');
 var fse = require('fs-extra');
-var fsUtils = require('fs');
+var fs = require('fs');
 var path = require('path');
 
 exports.fixturesDir = path.join(__dirname, 'fixtures');
@@ -99,10 +99,10 @@ exports.checkCurrentPkg = function(pkgInfo, callback) {
 	);
 };
 
-exports.getNpmCallHistory = function(callback) {
+exports.getNpmStubCallHistory = function(callback) {
 	Steppy(
 		function() {
-			fsUtils.readFile(
+			fs.readFile(
 				exports.npmStubCallHistoryPath, 'utf-8', this.slot()
 			);
 		},

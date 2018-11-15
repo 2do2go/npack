@@ -4,7 +4,7 @@
 
 var Steppy = require('twostep').Steppy;
 var _ = require('underscore');
-var fsUtils = require('fs');
+var fs = require('fs');
 var pathUtils = require('path');
 var testHelpers = require('../../helpers');
 
@@ -13,7 +13,7 @@ Steppy(
 		// remove node and npm stub paths
 		var args = _(process.argv).rest(2);
 
-		fsUtils.appendFile(
+		fs.appendFile(
 			testHelpers.npmStubCallHistoryPath,
 			JSON.stringify(args) + '\n',
 			'utf-8',

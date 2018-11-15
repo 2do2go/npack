@@ -485,14 +485,14 @@ describe('.install()', function() {
 				function(err, pkgInfo) {
 					this.pass(pkgInfo);
 
-					helpers.getNpmCallHistory(this.slot());
+					helpers.getNpmStubCallHistory(this.slot());
 				},
-				function(err, pkgInfo, npmCallHistory) {
-					expect(npmCallHistory.length).equal(2);
-					expect(npmCallHistory[0]).eql([
+				function(err, pkgInfo, npmStubCallHistory) {
+					expect(npmStubCallHistory.length).equal(2);
+					expect(npmStubCallHistory[0]).eql([
 						'prune', '--production'
 					]);
-					expect(npmCallHistory[1]).eql([
+					expect(npmStubCallHistory[1]).eql([
 						'install', '--production'
 					]);
 
