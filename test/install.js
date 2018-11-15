@@ -446,4 +446,60 @@ describe('.install()', function() {
 			);
 		});
 	});
+
+	describe('with option `env`', function() {
+		beforeEach(function(done) {
+			Steppy(
+				function() {
+					fse.emptyDir(helpers.tempDir, this.slot());
+					fse.remove(helpers.npmStubCallHistoryPath, this.slot());
+				},
+				done
+			);
+		});
+
+		afterEach(function(done) {
+			Steppy(
+				function() {
+					fse.remove(helpers.tempDir, this.slot());
+					fse.remove(helpers.npmStubCallHistoryPath, this.slot());
+				},
+				done
+			);
+		});
+
+		it('should be ok when npm stub passed to PATH', function(done) {
+			Steppy(
+				function() {
+					npack.install({
+						src: path.join(helpers.fixturesDir, 'simple.tar.gz'),
+						dir: helpers.tempDir,
+						env: {
+							PATH: [
+								helpers.npmStubDir,
+								process.env.PATH
+							].join(':')
+						}
+					}, this.slot());
+				},
+				function(err, pkgInfo) {
+					this.pass(pkgInfo);
+
+					helpers.getNpmStubCallHistory(this.slot());
+				},
+				function(err, pkgInfo, npmStubCallHistory) {
+					expect(npmStubCallHistory.length).equal(2);
+					expect(npmStubCallHistory[0]).eql([
+						'prune', '--production'
+					]);
+					expect(npmStubCallHistory[1]).eql([
+						'install', '--production'
+					]);
+
+					helpers.checkPkgExists(pkgInfo, true, this.slot());
+				},
+				done
+			);
+		});
+	});
 });
