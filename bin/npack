@@ -8,6 +8,7 @@ var program = require('commander'),
 	Steppy = require('twostep').Steppy,
 	read = require('read'),
 	processUtils = require('../lib/utils/process'),
+	shellQuote = require('shell-quote').quote,
 	logger = require('../lib/utils/logger'),
 	fsUtils = require('../lib/utils/fs'),
 	path = require('path'),
@@ -417,7 +418,7 @@ program.command('clean')
 		);
 	});
 
-program.command('run [script]')
+program.command('run [script] [args...]')
 	.description('Execute "npm run" task from current package')
 	.option('-L, --no-log', 'Disable detailed log')
 	.option('--trace', 'Show stack trace on error')
@@ -432,7 +433,7 @@ program.command('run [script]')
 		resolveDirPath,
 		defaultDirPath
 	)
-	.action(function(script, options) {
+	.action(function(script, args, options) {
 		Steppy(
 			function() {
 				fsUtils.checkDirExists({
@@ -477,7 +478,13 @@ program.command('run [script]')
 				if (_(pkgInfo.scripts).has(script)) {
 					logger.log('Execute script "npm run %s"', script);
 
-					processUtils.execScript('npm run --silent ' + script, {
+					var cmd = 'npm run --silent ' + script;
+
+					if (!_(args).isEmpty()) {
+						cmd += ' -- ' + shellQuote(args);
+					}
+
+					processUtils.execScript(cmd, {
 						cwd: pkgInfo.path,
 						dir: options.dir,
 						log: options.log,
