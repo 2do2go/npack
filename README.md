@@ -56,6 +56,16 @@ To uninstall installed package run:
 $ npack uninstall <package_name>
 ```
 
+### Execute "npm run" task from current package
+
+To execute npm script with optional agruments run:
+
+```bash
+$ npack run <script_name>
+$ npack run <script_name> arg_1 arg_2
+$ npack run <script_name> -- arg_1 --with flag
+```
+
 ## License
 
 [MIT](./LICENSE)
