@@ -45,7 +45,7 @@
     "npm-package-arg": "6.0.0",
     "read": "1.0.7",
     "semver": "5.1.0",
-    "shell-quote": "^1.6.1",
+    "shell-quote": "1.7.1",
     "tar": "2.2.1",
     "twostep": "0.4.1",
     "underscore": "1.8.3"
