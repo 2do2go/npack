@@ -41,7 +41,7 @@
     "commander": "3.0.0",
     "fs-extra": "8.1.0",
     "moment": "2.24.0",
-    "npm-package-arg": "6.1.0",
+    "npm-package-arg": "6.1.1",
     "read": "1.0.7",
     "semver": "6.3.0",
     "shell-quote": "1.7.1",
